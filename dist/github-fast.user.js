@@ -1,20 +1,21 @@
 // ==UserScript==
-// @name       GitHub加速下载
-// @namespace  https://github.com/laboratorys/github-fast
-// @version    1.0.0
-// @author     Libs
-// @license    MIT License
-// @icon       https://github.githubassets.com/favicon.ico
-// @include    *://github.com/*
-// @include    *://github*
-// @require    https://registry.npmmirror.com/vue/3.4.38/files/dist/vue.global.prod.js
-// @require    https://registry.npmmirror.com/vue-demi/0.14.10/files/lib/index.iife.js
-// @require    https://registry.npmmirror.com/jquery/3.7.1/files
-// @require    https://registry.npmmirror.com/pinia/2.2.2/files/dist/pinia.iife.prod.js
-// @grant      GM.notification
-// @grant      GM.registerMenuCommand
-// @grant      GM_getValue
-// @grant      GM_setValue
+// @name         GitHub加速下载
+// @namespace    https://github.com/laboratorys/github-fast
+// @version      1.0.0
+// @author       Libs
+// @description  可自定义配置的GitHub加速下载脚本
+// @license      MIT License
+// @icon         https://github.githubassets.com/favicon.ico
+// @include      *://github.com/*
+// @include      *://github*
+// @require      https://registry.npmmirror.com/vue/3.4.38/files/dist/vue.global.prod.js
+// @require      https://registry.npmmirror.com/vue-demi/0.14.10/files/lib/index.iife.js
+// @require      https://registry.npmmirror.com/jquery/3.7.1/files
+// @require      https://registry.npmmirror.com/pinia/2.2.2/files/dist/pinia.iife.prod.js
+// @grant        GM.notification
+// @grant        GM.registerMenuCommand
+// @grant        GM_getValue
+// @grant        GM_setValue
 // ==/UserScript==
 
 (function (vue, pinia, $) {
