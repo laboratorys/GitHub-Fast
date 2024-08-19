@@ -17,7 +17,7 @@
 
 ![alt text](https://cdn.jsdelivr.net/gh/laboratorys/GitHub-Fast@main/docs/%E6%88%AA%E5%9B%BE2.png)
 
-![alt text](https://cdn.jsdelivr.net/gh/laboratorys/GitHub-Fast@main/docs/%E6%88%AA%E5%9B%BEq.png)
+![alt text](https://cdn.jsdelivr.net/gh/laboratorys/GitHub-Fast@main/docs/%E6%88%AA%E5%9B%BE1.png)
 
 ## 初衷
 
