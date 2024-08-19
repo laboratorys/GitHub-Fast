@@ -1,6 +1,6 @@
 # Github-Fast
 
-**Github 加速下载油猴脚本（自用）**
+**Github 加速下载[油猴脚本](https://greasyfork.org/zh-CN/scripts/504224-github%E5%8A%A0%E9%80%9F%E4%B8%8B%E8%BD%BD)（自用）**
 
 ## 特性
 
@@ -10,6 +10,14 @@
 4. 支持自定义加速列表、排序
 5. 支持分流下载
 6. 配置页面的明暗主题与 GitHub 保持一致
+
+## 配置
+
+[greasyfork](https://greasyfork.org/zh-CN/scripts/504224-github%E5%8A%A0%E9%80%9F%E4%B8%8B%E8%BD%BD)脚本安装后打开菜单
+
+![alt text](docs/截图2.png)
+
+![alt text](docs/截图1.png)
 
 ## 初衷
 
