@@ -15,9 +15,9 @@
 
 [greasyfork](https://greasyfork.org/zh-CN/scripts/504224-github%E5%8A%A0%E9%80%9F%E4%B8%8B%E8%BD%BD)脚本安装后打开菜单
 
-![alt text](docs/截图2.png)
+![alt text](https://cdn.jsdelivr.net/gh/laboratorys/GitHub-Fast@main/docs/%E6%88%AA%E5%9B%BE2.png)
 
-![alt text](docs/截图1.png)
+![alt text](https://cdn.jsdelivr.net/gh/laboratorys/GitHub-Fast@main/docs/%E6%88%AA%E5%9B%BEq.png)
 
 ## 初衷
 
