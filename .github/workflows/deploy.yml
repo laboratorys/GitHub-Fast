@@ -13,8 +13,8 @@ jobs:
           node-version: 18
       - name: Install and Build 🔧
         run: |
-          npm ci
-          npm run build
+          yarn install --frozen-lockfile
+          yarn run build
       - name: Commit files
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
