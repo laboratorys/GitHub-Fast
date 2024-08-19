@@ -15,6 +15,7 @@ export default defineConfig({
         author: "Libs",
         include: ["*://github.com/*", "*://github*"],
         license: "MIT License",
+        description: "可自定义配置的GitHub加速下载脚本",
         version: "1.0.0",
       },
       build: {
