@@ -11,10 +11,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - name: Run install
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build
+      - name: Install and Build 🔧
+        run: |
+          npm ci
+          npm run build
       - name: Commit files
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
