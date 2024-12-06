@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import { run } from "./page/github.js";
+import { monkeyWindow } from "$";
 
 const pinia = createPinia();
 const app = createApp(App);
@@ -10,7 +11,7 @@ app.mount(
   (() => {
     const app = document.createElement("div");
     document.body.append(app);
-    run();
+    run(monkeyWindow.elmGetter);
     return app;
   })()
 );

@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import monkey, { cdn } from "vite-plugin-monkey";
+import monkey, { cdn, util } from "vite-plugin-monkey";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,6 +16,10 @@ export default defineConfig({
         include: ["*://github.com/*", "*://github*"],
         license: "MIT License",
         description: "可自定义配置的GitHub加速下载脚本",
+        require: [
+          "https://scriptcat.org/lib/513/2.0.1/ElementGetter.js#sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=",
+          util.dataUrl(`window.elmGetter=elmGetter`),
+        ],
         version: "1.0.0",
       },
       build: {

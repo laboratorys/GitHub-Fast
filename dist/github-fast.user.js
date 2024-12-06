@@ -8,6 +8,8 @@
 // @icon         https://github.githubassets.com/favicon.ico
 // @include      *://github.com/*
 // @include      *://github*
+// @require      https://scriptcat.org/lib/513/2.0.1/ElementGetter.js#sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=
+// @require      data:application/javascript,window.elmGetter%3DelmGetter
 // @require      https://registry.npmmirror.com/vue/3.4.38/files/dist/vue.global.prod.js
 // @require      https://registry.npmmirror.com/vue-demi/0.14.10/files/lib/index.iife.js
 // @require      https://registry.npmmirror.com/jquery/3.7.1/files
@@ -26,7 +28,7 @@
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
   var require_main_001 = __commonJS({
-    "main-C7YDsW3n.js"(exports, module) {
+    "main-De7G72sY.js"(exports, module) {
       const useStore = pinia.defineStore("main", {
         state: () => ({
           showConfig: false
@@ -26593,7 +26595,7 @@ ${style2}
           };
         }
       };
-      function run() {
+      function run(elmGetter) {
         const config = GM_getValue("githubFastConfig");
         const store = useStore();
         GM.registerMenuCommand("加速配置", () => {
@@ -26603,111 +26605,77 @@ ${style2}
         if (MirrorUrl.length == 0) {
           return;
         }
-        function callback(_mutationList, _observer) {
-          new MutationObserver((mutations, self2) => {
-            mutations.forEach((mutation) => {
-              if (mutation.type == "childList" && mutation.addedNodes.length > 0) {
-                mutation.addedNodes.forEach((node) => {
-                  if (node.className != void 0 && node.tagName == "TR" && node.className.includes("react-directory-row")) {
-                    addListDownBtn($(node));
-                  }
-                });
+        function setListDownBtn(elmGetter2) {
+          elmGetter2.get("table[aria-labelledby='folders-and-files']").then((table) => {
+            $(table).find("tr").each(function(index, item) {
+              var rowType = $(item).find("td:eq(1)").find("div[class='react-directory-filename-column']").find("svg").attr("class");
+              if (rowType && rowType === "color-fg-muted") {
+                addListDownBtn($(item));
               }
             });
-          }).observe(document.querySelector("body"), {
-            childList: true,
-            subtree: true,
-            attributes: true
           });
-          if (window.location.pathname.split("/")[3] == "releases") {
-            if ($('div[class="Box Box--condensed mt-3"]').length > 0) {
-              addReleaseList($('div[class="Box Box--condensed mt-3"]'));
-            }
-            let bodyBox = document.querySelector("body");
-            new MutationObserver((mutations, self2) => {
-              mutations.forEach((mutation) => {
-                if (mutation.type == "childList" && mutation.addedNodes.length > 0) {
-                  mutation.addedNodes.forEach((node) => {
-                    if (node.className != void 0 && node.className.includes("Box--condensed")) {
-                      addReleaseList($(node));
-                    }
-                  });
-                }
-              });
-            }).observe(bodyBox, { childList: true, subtree: true, attributes: true });
-          }
+        }
+        function setRawBtn() {
           if (window.location.pathname.split("/")[3] == "blob") {
             addRawBtn();
-          } else {
-            if ($("#__primerPortalRoot__").length > 0) {
-              $(".fast-clone").remove();
-              $(".fast-zip").remove();
-              addCloneList();
-              addDownZipList();
-            }
-            let bodyBox = document.querySelector("body");
-            new MutationObserver((mutations, self2) => {
-              mutations.forEach(({ addedNodes, attributeName, target }) => {
-                addedNodes.forEach((node) => {
-                  if (node.id !== "__primerPortalRoot__") return;
-                  let nodeContent = node.innerHTML;
-                  if (!nodeContent.includes("Clone using the web URL.")) return;
-                  $(".fast-clone").remove();
-                  $(".fast-zip").remove();
-                  addCloneList();
-                  addDownZipList();
-                  observeChanges(node);
-                });
-                if (attributeName == "aria-current" && $(target).attr("aria-current") !== void 0) {
-                  $(".fast-clone").remove();
-                  if ($(target).attr("aria-keyshortcuts") == "h") {
-                    addCloneList();
+          }
+        }
+        function setReleaseBtn() {
+          if (window.location.pathname.split("/")[3] == "releases") {
+            addReleaseList($('div[class="Box Box--condensed mt-3"]'));
+          }
+        }
+        setListDownBtn(elmGetter);
+        setRawBtn();
+        setReleaseBtn();
+        function callback(mutations, _observer) {
+          mutations.forEach((mutation) => {
+            if (mutation.type == "childList" && mutation.addedNodes.length > 0) {
+              mutation.addedNodes.forEach((node) => {
+                try {
+                  if (node.className != void 0 && node.className && node.className.includes("react-directory-commit-age")) {
+                    setListDownBtn(elmGetter);
                   }
+                } catch (exceptionVar) {
                 }
               });
-            }).observe(bodyBox, { childList: true, subtree: true, attributes: true });
+            }
+            if (mutation.target && mutation.target.tagName === "BUTTON" && mutation.target.getAttribute("class").includes("TabNav-item") && mutation.target.getAttribute("aria-selected") === "true" && $(mutation.target).find("span").find("span").text() === "Local") {
+              $(".fast-zip").remove();
+              addDownZipList();
+              if (isShow($("#clone-with-https")) && $("#clone-with-https").length > 0) {
+                $(".fast-clone").remove();
+                addCloneList();
+              }
+            }
+            if (mutation.target && mutation.target.tagName === "DIV" && mutation.target.getAttribute("data-view-component") === "true") {
+              setReleaseBtn();
+            }
+            if (mutation.target && mutation.target.tagName === "A" && mutation.target.getAttribute("data-testid") === "raw-button") {
+              setRawBtn();
+            }
+          });
+        }
+        function isShow(target) {
+          if (target.is(":visible")) {
+            return true;
+          } else {
+            return false;
           }
         }
         const observer = new MutationObserver(callback);
-        observer.observe(document.querySelector("head"), {
+        observer.observe(document.querySelector("body"), {
           attributes: true,
-          childList: true
+          childList: true,
+          subtree: true
         });
-        function observeChanges(targetNode) {
-          const nodeObserver = new MutationObserver((mutations, self2) => {
-            mutations.forEach(({ addedNodes }) => {
-              if (addedNodes.length > 0) {
-                let hasHttpClone = false;
-                let hasDownZipClone = false;
-                addedNodes.forEach((node) => {
-                  let nodeContent = node.innerHTML;
-                  if (nodeContent != void 0 && nodeContent != nodeContent.includes("Clone using the web URL.") && !nodeContent.includes("fast-clone")) {
-                    hasHttpClone = true;
-                  }
-                  if (nodeContent != void 0 && nodeContent != nodeContent.includes("Download ZIP") && !nodeContent.includes("fast-clone")) {
-                    hasDownZipClone = true;
-                  }
-                });
-                if (hasHttpClone) {
-                  $(".fast-clone").remove();
-                  addCloneList();
-                }
-                if (hasDownZipClone) {
-                  $(".fast-zip").remove();
-                  addDownZipList();
-                }
-              }
-            });
-          });
-          nodeObserver.observe(targetNode, { childList: true });
-        }
         function addCloneList() {
           var href = window.location.href.split("/");
           var git = href[3] + "/" + href[4] + ".git";
           let inputGit = $("#__primerPortalRoot__").find("input").parent();
           var InputDivClass = inputGit.attr("class");
-          var TitleSpanClass = inputGit.parent().find("span:last").attr("class");
-          var info = ` <span class="${TitleSpanClass} fast-clone" style="color:palegreen">加速列表</span>`;
+          inputGit.parent().find("span:last").attr("class");
+          var info = ` <span class="fast-clone" style="color:palegreen">加速列表</span>`;
           MirrorUrl.forEach((u) => {
             var Url = u.url + "/https://github.com/" + git;
             if (config && config.clone) {
@@ -26721,7 +26689,7 @@ ${style2}
           });
           function cloneHtml(InputDivClass2, Url) {
             return `
-<div class="${InputDivClass2} fast-clone mt-2">
+<div class="${InputDivClass2} fast-clone mr-2">
   <input
     type="text"
     class="form-control input-monospace input-sm color-bg-subtle"
@@ -26734,7 +26702,7 @@ ${style2}
   <clipboard-copy
     value="${Url}"
     aria-label="Copy url to clipboard"
-    class="types__StyledButton-sc-ws60qy-0 eeWJiy ml-1 mr-0 js-clipboard-copy tooltipped-no-delay"
+    class="ml-1 mr-0 js-clipboard-copy tooltipped-no-delay"
     data-copy-feedback="Copied!"
     data-tooltip-direction="n"
     role="button"
@@ -26766,20 +26734,23 @@ ${style2}
 </div>
            `;
           }
-          $("#__primerPortalRoot__").find("input").parent().parent().find("span").filter(function() {
-            return $(this).attr("class").includes("Text-sc");
+          $("#__primerPortalRoot__").find("input").parent().parent().find("p").filter(function() {
+            if (!$(this).attr("class")) {
+              return false;
+            }
+            return $(this).attr("class").includes("text-normal");
           }).before($(info));
         }
         function addDownZipList() {
           MirrorUrl.forEach((u) => {
-            let downZipClone = $("#__primerPortalRoot__").find('ul[role="menu"]:last').find("li:eq(1)").clone();
+            let downZipClone = $("#__primerPortalRoot__").find("ul:last").find("li:eq(1)").clone();
             downZipClone.addClass("fast-zip");
             var zipPath = downZipClone.find("a").attr("href");
             var Url = u.url + "/https://github.com/" + zipPath;
             var zipText = u.name;
             downZipClone.find("a").attr("href", Url);
             downZipClone.find("span:last").text(`Fast Download Zip [${zipText}]`);
-            $("#__primerPortalRoot__").find('ul[role="menu"]:last').append(downZipClone);
+            $("#__primerPortalRoot__").find("ul:last").append(downZipClone);
           });
         }
         function addReleaseList(target) {
@@ -26799,7 +26770,7 @@ ${style2}
             urls.forEach((u, index) => {
               var title = "下载";
               if (urls.length > 1) {
-                title = MirrorUrl[index][1];
+                title = MirrorUrl[index].name;
               }
               aHtml += `<a
     href="${u}"
@@ -26910,6 +26881,7 @@ ${style2}
           return proxyUrl;
         }
       }
+      var _monkeyWindow = /* @__PURE__ */ (() => window)();
       const pinia$1 = pinia.createPinia();
       const app = vue.createApp(_sfc_main);
       app.use(pinia$1);
@@ -26917,7 +26889,7 @@ ${style2}
         (() => {
           const app2 = document.createElement("div");
           document.body.append(app2);
-          run();
+          run(_monkeyWindow.elmGetter);
           return app2;
         })()
       );
