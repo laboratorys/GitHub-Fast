@@ -77,6 +77,7 @@ export function run(elmGetter) {
       if (
         mutation.target &&
         mutation.target.tagName === "BUTTON" &&
+        typeof mutation.target.getAttribute("class") == "string" &&
         mutation.target.getAttribute("class").includes("TabNav-item") &&
         mutation.target.getAttribute("aria-selected") === "true" &&
         $(mutation.target).find("span").find("span").text() === "Local"

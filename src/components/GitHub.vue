@@ -1,10 +1,32 @@
 <template>
   <n-drawer v-model:show="store.showConfig" :width="502">
-    <n-drawer-content title="GitHub加速配置" closable>
+    <n-drawer-content closable>
+      <template #header> GitHub加速配置 </template>
       <div class="centered-content">
-        <n-form label-placement="left" label-width="auto">
+        <n-form label-placement="left" label-width="auto" size="medium">
           <n-h3>
-            <n-text type="primary"> 负载均衡 </n-text>
+            <n-flex style="gap: 3px">
+              <n-button text style="font-size: 20px" type="primary">
+                <n-icon>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    viewBox="0 0 32 32">
+                    <path d="M15 8h2v2h-2z" fill="currentColor"></path>
+                    <path d="M19 8h2v2h-2z" fill="currentColor"></path>
+                    <path d="M11 8h2v2h-2z" fill="currentColor"></path>
+                    <path
+                      d="M25 16h-8v-3h-2v3H7a2.002 2.002 0 0 0-2 2v6h2v-6h8v6h2v-6h8v6h2v-6a2.002 2.002 0 0 0-2-2z"
+                      fill="currentColor"></path>
+                    <path d="M4 26h4v4H4z" fill="currentColor"></path>
+                    <path d="M14 26h4v4h-4z" fill="currentColor"></path>
+                    <path d="M24 26h4v4h-4z" fill="currentColor"></path>
+                    <path d="M11 3h10v2H11z" fill="currentColor"></path>
+                  </svg>
+                </n-icon>
+              </n-button>
+              <n-text type="primary"> 负载均衡 </n-text>
+            </n-flex>
           </n-h3>
           <n-form-item>
             <n-switch
@@ -16,7 +38,21 @@
             </n-switch>
           </n-form-item>
           <n-h3>
-            <n-text type="primary"> 克隆 </n-text>
+            <n-flex style="gap: 3px">
+              <n-button text style="font-size: 20px" type="primary">
+                <n-icon>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    viewBox="0 0 512 512">
+                    <path
+                      d="M464 0H144c-26.51 0-48 21.49-48 48v48H48c-26.51 0-48 21.49-48 48v320c0 26.51 21.49 48 48 48h320c26.51 0 48-21.49 48-48v-48h48c26.51 0 48-21.49 48-48V48c0-26.51-21.49-48-48-48zM362 464H54a6 6 0 0 1-6-6V150a6 6 0 0 1 6-6h42v224c0 26.51 21.49 48 48 48h224v42a6 6 0 0 1-6 6zm96-96H150a6 6 0 0 1-6-6V54a6 6 0 0 1 6-6h308a6 6 0 0 1 6 6v308a6 6 0 0 1-6 6z"
+                      fill="currentColor"></path>
+                  </svg>
+                </n-icon>
+              </n-button>
+              <n-text type="primary"> 克隆 </n-text>
+            </n-flex>
           </n-h3>
           <n-form-item>
             <n-space item-style="display: flex;">
@@ -33,16 +69,83 @@
             </n-space>
           </n-form-item>
           <n-h3>
-            <n-text type="primary"> 列表文件加速 </n-text>
+            <n-flex style="gap: 3px">
+              <n-button text style="font-size: 20px" type="primary">
+                <n-icon>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    viewBox="0 0 24 24">
+                    <g fill="none">
+                      <path
+                        d="M4.25 4A2.25 2.25 0 0 0 2 6.25v2.5A2.25 2.25 0 0 0 4.25 11h2.5A2.25 2.25 0 0 0 9 8.75v-2.5A2.25 2.25 0 0 0 6.75 4h-2.5zM3.5 6.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1-.75-.75v-2.5zM11.25 5a.75.75 0 0 0 0 1.5h10a.75.75 0 0 0 0-1.5h-10zm0 3a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-7zm-7 5A2.25 2.25 0 0 0 2 15.25v2.5A2.25 2.25 0 0 0 4.25 20h2.5A2.25 2.25 0 0 0 9 17.75v-2.5A2.25 2.25 0 0 0 6.75 13h-2.5zm-.75 2.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1-.75-.75v-2.5zM11.25 14a.75.75 0 0 0 0 1.5h10a.75.75 0 0 0 0-1.5h-10zm0 3a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-7z"
+                        fill="currentColor"></path>
+                    </g>
+                  </svg>
+                </n-icon>
+              </n-button>
+              <n-text type="primary"> 仓库文件加速 </n-text>
+            </n-flex>
           </n-h3>
           <n-form-item>
             <n-select
               v-model:value="projectFileDownloadUrl"
               :options="projectFileUrlList"
-              placeholder="选择加速地址" />
+              filterable
+              placeholder="选择加速地址">
+              <template #arrow>
+                <transition name="slide-left">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    viewBox="0 0 16 16">
+                    <g fill="none">
+                      <path
+                        d="M3.689 1a.75.75 0 0 0-.721.544l-1.858 6.5A.75.75 0 0 0 1.832 9H3.36l-1.345 5.379a.5.5 0 0 0 .849.464l2.428-2.57a5.47 5.47 0 0 1-.26-1.181l-1.583 1.675l1.036-4.146A.5.5 0 0 0 4 8H2.163l1.714-6H8.28L7.032 5.324a.5.5 0 0 0 .332.657A5.474 5.474 0 0 1 10.42 5H8.222l1.12-2.987A.75.75 0 0 0 8.639 1H3.69zM10.5 15a4.5 4.5 0 1 0 0-9a4.5 4.5 0 0 0 0 9zm2.354-5.646l-3 3a.5.5 0 0 1-.707 0l-1-1a.5.5 0 0 1 .707-.708l.646.647l2.646-2.647a.5.5 0 1 1 .708.708z"
+                        fill="currentColor"></path>
+                    </g>
+                  </svg>
+                </transition>
+              </template>
+            </n-select>
           </n-form-item>
           <n-h3>
-            <n-text type="primary"> 加速列表 </n-text>
+            <n-flex style="gap: 3px">
+              <n-button text style="font-size: 20px" type="primary">
+                <n-icon>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    viewBox="0 0 16 16">
+                    <g fill="none">
+                      <path
+                        d="M4.968 1.544A.75.75 0 0 1 5.688 1h4.951a.75.75 0 0 1 .703 1.013L10.222 5h2.198a.75.75 0 0 1 .545 1.265l-8.101 8.578a.5.5 0 0 1-.849-.464L5.36 9H3.832a.75.75 0 0 1-.722-.956l1.858-6.5zm.91.456L4.162 8H6a.5.5 0 0 1 .485.621L5.45 12.767L11.84 6H9.5a.5.5 0 0 1-.468-.676L10.279 2H5.877z"
+                        fill="currentColor"></path>
+                    </g>
+                  </svg>
+                </n-icon>
+              </n-button>
+              <n-text type="primary"> 加速列表</n-text>
+              <n-tooltip trigger="hover" placement="right">
+                <template #trigger>
+                  <n-button text style="font-size: 20px" @click="handleClick">
+                    <n-icon>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns:xlink="http://www.w3.org/1999/xlink"
+                        viewBox="0 0 16 16">
+                        <g fill="none">
+                          <path
+                            d="M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 8.5A.75.75 0 1 0 8 12a.75.75 0 0 0 0-1.5zm0-6a2 2 0 0 0-2 2a.5.5 0 0 0 1 0a1 1 0 0 1 2 0c0 .37-.083.58-.366.898l-.116.125l-.264.27C7.712 8.36 7.5 8.768 7.5 9.5a.5.5 0 0 0 1 0c0-.37.083-.58.366-.898l.116-.125l.264-.27C9.788 7.64 10 7.232 10 6.5a2 2 0 0 0-2-2z"
+                            fill="currentColor"></path>
+                        </g>
+                      </svg>
+                    </n-icon>
+                  </n-button>
+                </template>
+                GitHub镜像站点，没有代理的话可以逛逛
+              </n-tooltip>
+            </n-flex>
           </n-h3>
           <n-form-item>
             <n-dynamic-input
@@ -70,14 +173,42 @@
             </n-dynamic-input>
           </n-form-item>
           <n-space justify="center"
-            ><n-button type="primary" size="medium" strong @click="saveConfig">
+            ><n-button
+              round
+              type="primary"
+              size="medium"
+              strong
+              @click="saveConfig">
+              <template #icon>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  viewBox="0 0 24 24">
+                  <g fill="none">
+                    <path
+                      d="M3 5.75A2.75 2.75 0 0 1 5.75 3h9.964a3.25 3.25 0 0 1 2.299.952l2.035 2.035c.61.61.952 1.437.952 2.299v9.964A2.75 2.75 0 0 1 18.25 21H5.75A2.75 2.75 0 0 1 3 18.25V5.75zM5.75 4.5c-.69 0-1.25.56-1.25 1.25v12.5c0 .69.56 1.25 1.25 1.25H6v-5.25A2.25 2.25 0 0 1 8.25 12h7.5A2.25 2.25 0 0 1 18 14.25v5.25h.25c.69 0 1.25-.56 1.25-1.25V8.286c0-.465-.184-.91-.513-1.238l-2.035-2.035a1.75 1.75 0 0 0-.952-.49V7.25a2.25 2.25 0 0 1-2.25 2.25h-4.5A2.25 2.25 0 0 1 7 7.25V4.5H5.75zm10.75 15v-5.25a.75.75 0 0 0-.75-.75h-7.5a.75.75 0 0 0-.75.75v5.25h9zm-8-15v2.75c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75V4.5h-6z"
+                      fill="currentColor"></path>
+                  </g>
+                </svg>
+              </template>
               保存配置
             </n-button>
             <n-button
+              round
               type="default"
               size="medium"
               strong
               @click="store.showConfig = false">
+              <template #icon>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  viewBox="0 0 24 24">
+                  <path
+                    d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                    fill="currentColor"></path>
+                </svg>
+              </template>
               关闭
             </n-button>
           </n-space>
@@ -90,6 +221,9 @@
 import { ref, computed } from "vue";
 import { useStore } from "../utils/store.js";
 import {
+  NFlex,
+  NIcon,
+  NTooltip,
   NButton,
   NDrawer,
   NDrawerContent,
@@ -164,5 +298,8 @@ const initData = () => {
   }
 };
 initData();
+const handleClick = () => {
+  window.open("https://github-mirror.us.kg", "_blank");
+};
 </script>
 <style scoped></style>

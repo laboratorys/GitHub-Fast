@@ -20,7 +20,7 @@ export default defineConfig({
           "https://scriptcat.org/lib/513/2.0.1/ElementGetter.js#sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=",
           util.dataUrl(`window.elmGetter=elmGetter`),
         ],
-        version: "1.0.0",
+        version: "1.0.2",
       },
       build: {
         externalGlobals: {
@@ -28,9 +28,10 @@ export default defineConfig({
             .npmmirror("Vue", "dist/vue.global.prod.js")
             .concat(
               "https://registry.npmmirror.com/vue-demi/0.14.10/files/lib/index.iife.js"
-            ),
+            )
+            .concat(util.dataUrl(";window.Vue=Vue;")),
           jquery: cdn.npmmirror("jQuery"),
-          //"naive-ui": cdn.unpkg("naive-ui", 'dist/index.prod.js'),
+          "naive-ui": cdn.unpkg("naive", "dist/index.prod.js"),
           pinia: cdn.npmmirror("Pinia", "dist/pinia.iife.prod.js"),
         },
       },
