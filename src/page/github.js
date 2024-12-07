@@ -92,6 +92,21 @@ export function run(elmGetter) {
           addCloneList();
         }
       }
+      if (
+        mutation.type === "attributes" &&
+        mutation.attributeName == "aria-current" &&
+        mutation.target.tagName === "A" &&
+        mutation.target.getAttribute("aria-current") === "page"
+      ) {
+        if ($(mutation.target).find("span").text() === "HTTPS") {
+          $(".fast-clone").remove();
+          addCloneList();
+        } else if ($(mutation.target).find("span").text() === "SSH") {
+          $(".fast-clone").remove();
+        } else if ($(mutation.target).find("span").text() === "GitHub CLI") {
+          $(".fast-clone").remove();
+        }
+      }
       // release btn
       if (
         mutation.target &&
