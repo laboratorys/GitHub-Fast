@@ -629,7 +629,7 @@
         if (mutation.target && mutation.target.tagName === "DIV" && mutation.target.getAttribute("data-view-component") === "true") {
           setReleaseBtn();
         }
-        if (mutation.target && mutation.target.tagName === "A" && mutation.target.getAttribute("data-testid") === "raw-button") {
+        if (mutation.target && mutation.target.tagName === "A" && mutation.target.getAttribute("data-testid") === "edit-button") {
           setRawBtn();
         }
       });
