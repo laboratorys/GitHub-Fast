@@ -104,7 +104,7 @@ export function run(elmGetter) {
       if (
         mutation.target &&
         mutation.target.tagName === "A" &&
-        mutation.target.getAttribute("data-testid") === "raw-button"
+        mutation.target.getAttribute("data-testid") === "edit-button"
       ) {
         setRawBtn();
       }
