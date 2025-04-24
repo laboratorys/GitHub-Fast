@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub加速下载
 // @namespace    https://github.com/laboratorys/github-fast
-// @version      1.0.2
+// @version      1.0.3
 // @author       Libs
 // @description  可自定义配置的GitHub加速下载脚本
 // @license      MIT License
@@ -14,8 +14,8 @@
 // @require      https://registry.npmmirror.com/vue-demi/0.14.10/files/lib/index.iife.js
 // @require      data:application/javascript,%3Bwindow.Vue%3DVue%3B
 // @require      https://registry.npmmirror.com/jquery/3.7.1/files
-// @require      https://unpkg.com/naive-ui@2.40.3/dist/index.prod.js
-// @require      https://registry.npmmirror.com/pinia/2.3.0/files/dist/pinia.iife.prod.js
+// @require      https://unpkg.com/naive-ui@2.41.0/dist/index.prod.js
+// @require      https://registry.npmmirror.com/pinia/3.0.2/files/dist/pinia.iife.prod.js
 // @grant        GM.notification
 // @grant        GM.registerMenuCommand
 // @grant        GM_getValue
@@ -587,7 +587,7 @@
       elmGetter2.get("table[aria-labelledby='folders-and-files']").then((table) => {
         $(table).find("tr").each(function(index, item) {
           var rowType = $(item).find("td:eq(1)").find("div[class='react-directory-filename-column']").find("svg").attr("class");
-          if (rowType && rowType === "color-fg-muted") {
+          if (rowType && rowType.indexOf("icon-directory") == -1) {
             addListDownBtn($(item));
           }
         });
@@ -603,9 +603,14 @@
         addReleaseList($('div[class="Box Box--condensed mt-3"]'));
       }
     }
+    function setOnlineEditorBtn() {
+      elmGetter.get("ul[class='pagehead-actions flex-shrink-0 d-none d-md-inline']").then((action) => {
+      });
+    }
     setListDownBtn(elmGetter);
     setRawBtn();
     setReleaseBtn();
+    setOnlineEditorBtn();
     function callback(mutations, _observer) {
       mutations.forEach((mutation) => {
         if (mutation.type == "childList" && mutation.addedNodes.length > 0) {
@@ -737,7 +742,9 @@
         var Url = u.url + "/https://github.com/" + zipPath;
         var zipText = u.name;
         downZipClone.find("a").attr("href", Url);
-        downZipClone.find("span:last").text(`Fast Download Zip [${zipText}]`);
+        var downloadSpan = downZipClone.find("a").find("span").eq(2);
+        downloadSpan.text(`Fast Download ZIP [${zipText}]`);
+        downloadSpan.css("color", "palegreen");
         $("#__primerPortalRoot__").find("ul:last").append(downZipClone);
       });
     }
@@ -853,7 +860,11 @@
       );
     }
     function pollingUrl() {
-      var proxyUrl = config ? config.proxyUrlList : new Array();
+      console.log(config.proxyUrlList);
+      const filteredUrlList = config.proxyUrlList.filter((item) => {
+        return item.isCheck;
+      });
+      var proxyUrl = config ? filteredUrlList : new Array();
       if (config && config.bypassDownload && proxyUrl.length > 0) {
         var index = GM_getValue("MirrorUrlIndex");
         if (index != null && index != void 0 && index + 1 <= proxyUrl.length - 1) {
