@@ -626,6 +626,16 @@
             addCloneList();
           }
         }
+        if (mutation.type === "attributes" && mutation.attributeName == "aria-current" && mutation.target.tagName === "A" && mutation.target.getAttribute("aria-current") === "page") {
+          if ($(mutation.target).find("span").text() === "HTTPS") {
+            $(".fast-clone").remove();
+            addCloneList();
+          } else if ($(mutation.target).find("span").text() === "SSH") {
+            $(".fast-clone").remove();
+          } else if ($(mutation.target).find("span").text() === "GitHub CLI") {
+            $(".fast-clone").remove();
+          }
+        }
         if (mutation.target && mutation.target.tagName === "DIV" && mutation.target.getAttribute("data-view-component") === "true") {
           setReleaseBtn();
         }
