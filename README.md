@@ -4,7 +4,7 @@
 
 ## 特性
 
-1. 本项目不提供镜像或代理地址，安装完插件后，必须进行设置加速地址后才可使用，推荐自建加速代理[gh-proxy](https://github.com/hunshcn/gh-proxy) 或逛逛 [github-mirror](https://github-mirror.us.kg/)
+1. 本项目不提供镜像或代理地址，安装完插件后，必须进行设置加速地址后才可使用，推荐自建加速代理[gh-proxy](https://github.com/hunshcn/gh-proxy) 或逛逛 [github-mirror](https://github-mirror.xiaoxuan6.me)
 2. 支持`git clone`和`--depth=1`
 3. 支持 Repository、Release、Raw、Clone、Source Code
 4. 支持自定义加速列表、排序
@@ -28,6 +28,13 @@
 [issues](https://github.com/laboratorys/GitHub-Fast/issues)
 
 ## 更新日志
+
+### v1.0.3-2025/04/24
+
+- 列表文件无法加速下载
+- 源码包下载按钮显示异常
+- 加速列表需要勾选生效
+- 更新依赖
 
 ### v1.0.2-2024/12/07
 
