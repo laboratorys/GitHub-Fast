@@ -299,7 +299,7 @@ const initData = () => {
 };
 initData();
 const handleClick = () => {
-  window.open("https://github-mirror.us.kg", "_blank");
+  window.open("https://gh.noki.eu.org", "_blank");
 };
 </script>
 <style scoped></style>

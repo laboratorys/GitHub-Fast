@@ -4,7 +4,7 @@
 
 ## 特性
 
-1. 本项目不提供镜像或代理地址，安装完插件后，必须进行设置加速地址后才可使用，推荐自建加速代理[gh-proxy](https://github.com/hunshcn/gh-proxy) 或逛逛 [github-mirror](https://github-mirror.xiaoxuan6.me)
+1. 本项目默认不提供镜像或代理地址，安装完插件后，必须进行设置加速地址后才可使用，推荐自建加速代理[gh-proxy](https://github.com/hunshcn/gh-proxy) 或~~逛逛 [github-mirror](https://github-mirror.xiaoxuan6.me)~~[我的](https://gh.noki.eu.org)
 2. 支持`git clone`和`--depth=1`
 3. 支持 Repository、Release、Raw、Clone、Source Code
 4. 支持自定义加速列表、排序
