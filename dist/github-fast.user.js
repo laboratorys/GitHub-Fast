@@ -96,7 +96,7 @@
       };
       initData();
       const handleClick = () => {
-        window.open("https://github-mirror.us.kg", "_blank");
+        window.open("https://gh.noki.eu.org", "_blank");
       };
       return (_ctx, _cache) => {
         return vue.openBlock(), vue.createBlock(vue.unref(naiveUi.NDrawer), {
