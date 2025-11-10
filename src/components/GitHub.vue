@@ -1,5 +1,5 @@
 <template>
-  <n-drawer v-model:show="store.showConfig" :width="502">
+  <n-drawer v-model:show="store.showConfig" :width="630">
     <n-drawer-content closable>
       <template #header> GitHub加速配置 </template>
       <div class="centered-content">
@@ -25,7 +25,26 @@
                   </svg>
                 </n-icon>
               </n-button>
-              <n-text type="primary"> 负载均衡 </n-text>
+              <n-text type="primary"> 分流下载 </n-text>
+              <n-tooltip trigger="hover" placement="right">
+                <template #trigger>
+                  <n-button text style="font-size: 20px">
+                    <n-icon>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns:xlink="http://www.w3.org/1999/xlink"
+                        viewBox="0 0 16 16">
+                        <g fill="none">
+                          <path
+                            d="M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 8.5A.75.75 0 1 0 8 12a.75.75 0 0 0 0-1.5zm0-6a2 2 0 0 0-2 2a.5.5 0 0 0 1 0a1 1 0 0 1 2 0c0 .37-.083.58-.366.898l-.116.125l-.264.27C7.712 8.36 7.5 8.768 7.5 9.5a.5.5 0 0 0 1 0c0-.37.083-.58.366-.898l.116-.125l.264-.27C9.788 7.64 10 7.232 10 6.5a2 2 0 0 0-2-2z"
+                            fill="currentColor"></path>
+                        </g>
+                      </svg>
+                    </n-icon>
+                  </n-button>
+                </template>
+                加速按钮只会显示一个，下载时轮询加速
+              </n-tooltip>
             </n-flex>
           </n-h3>
           <n-form-item>
@@ -110,44 +129,83 @@
             </n-select>
           </n-form-item>
           <n-h3>
-            <n-flex style="gap: 3px">
-              <n-button text style="font-size: 20px" type="primary">
-                <n-icon>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                    viewBox="0 0 16 16">
-                    <g fill="none">
+            <n-flex style="gap: 3px" align="center" justify="space-between">
+              <!-- 左侧：图标 + 文字 -->
+              <n-flex style="gap: 3px" align="center">
+                <n-button text style="font-size: 20px" type="primary">
+                  <n-icon>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns:xlink="http://www.w3.org/1999/xlink"
+                      viewBox="0 0 16 16">
+                      <g fill="none">
+                        <path
+                          d="M4.968 1.544A.75.75 0 0 1 5.688 1h4.951a.75.75 0 0 1 .703 1.013L10.222 5h2.198a.75.75 0 0 1 .545 1.265l-8.101 8.578a.5.5 0 0 1-.849-.464L5.36 9H3.832a.75.75 0 0 1-.722-.956l1.858-6.5zm.91.456L4.162 8H6a.5.5 0 0 1 .485.621L5.45 12.767L11.84 6H9.5a.5.5 0 0 1-.468-.676L10.279 2H5.877z"
+                          fill="currentColor"></path>
+                      </g>
+                    </svg>
+                  </n-icon>
+                </n-button>
+                <n-text type="primary"> 加速列表</n-text>
+              </n-flex>
+
+              <!-- 右侧：手动测速按钮 + 帮助按钮 -->
+              <n-flex style="gap: 8px" align="center">
+                <n-switch
+                  v-model:value="isAutoTest"
+                  size="small"
+                  :round="false">
+                </n-switch>
+                <!-- 手动测速按钮 -->
+                <n-button
+                  size="tiny"
+                  round
+                  type="primary"
+                  @click="testAllEnabledUrls"
+                  :loading="isTesting"
+                  style="min-width: 80px">
+                  <template #icon>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16">
+                      <path fill="none" d="M0 0h24v24H0z" />
                       <path
-                        d="M4.968 1.544A.75.75 0 0 1 5.688 1h4.951a.75.75 0 0 1 .703 1.013L10.222 5h2.198a.75.75 0 0 1 .545 1.265l-8.101 8.578a.5.5 0 0 1-.849-.464L5.36 9H3.832a.75.75 0 0 1-.722-.956l1.858-6.5zm.91.456L4.162 8H6a.5.5 0 0 1 .485.621L5.45 12.767L11.84 6H9.5a.5.5 0 0 1-.468-.676L10.279 2H5.877z"
-                        fill="currentColor"></path>
-                    </g>
-                  </svg>
-                </n-icon>
-              </n-button>
-              <n-text type="primary"> 加速列表</n-text>
-              <n-tooltip trigger="hover" placement="right">
-                <template #trigger>
-                  <n-button text style="font-size: 20px" @click="handleClick">
-                    <n-icon>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        xmlns:xlink="http://www.w3.org/1999/xlink"
-                        viewBox="0 0 16 16">
-                        <g fill="none">
-                          <path
-                            d="M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 8.5A.75.75 0 1 0 8 12a.75.75 0 0 0 0-1.5zm0-6a2 2 0 0 0-2 2a.5.5 0 0 0 1 0a1 1 0 0 1 2 0c0 .37-.083.58-.366.898l-.116.125l-.264.27C7.712 8.36 7.5 8.768 7.5 9.5a.5.5 0 0 0 1 0c0-.37.083-.58.366-.898l.116-.125l.264-.27C9.788 7.64 10 7.232 10 6.5a2 2 0 0 0-2-2z"
-                            fill="currentColor"></path>
-                        </g>
-                      </svg>
-                    </n-icon>
-                  </n-button>
-                </template>
-                GitHub镜像站点，没有代理的话可以逛逛
-              </n-tooltip>
+                        d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-8h4v2h-6V7h2v5z"
+                        fill="currentColor" />
+                    </svg>
+                  </template>
+                  {{ isTesting ? "测速中..." : "测速" }}
+                </n-button>
+
+                <!-- 帮助按钮（原有的） -->
+                <n-tooltip trigger="hover" placement="right">
+                  <template #trigger>
+                    <n-button text style="font-size: 20px" @click="handleClick">
+                      <n-icon>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          xmlns:xlink="http://www.w3.org/1999/xlink"
+                          viewBox="0 0 16 16">
+                          <g fill="none">
+                            <path
+                              d="M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 8.5A.75.75 0 1 0 8 12a.75.75 0 0 0 0-1.5zm0-6a2 2 0 0 0-2 2a.5.5 0 0 0 1 0a1 1 0 0 1 2 0c0 .37-.083.58-.366.898l-.116.125l-.264.27C7.712 8.36 7.5 8.768 7.5 9.5a.5.5 0 0 0 1 0c0-.37.083-.58.366-.898l.116-.125l.264-.27C9.788 7.64 10 7.232 10 6.5a2 2 0 0 0-2-2z"
+                              fill="currentColor"></path>
+                          </g>
+                        </svg>
+                      </n-icon>
+                    </n-button>
+                  </template>
+                  GitHub镜像站点，没有代理的话可以逛逛
+                </n-tooltip>
+              </n-flex>
             </n-flex>
           </n-h3>
-          <n-form-item>
+          <n-alert :show-icon="false" :bordered="false">
+            开启自动检测后，每次打开GitHub会进行一次测速，测速后将按照速度进行排序。
+          </n-alert>
+          <n-form-item class="mt-4">
             <n-dynamic-input
               v-model:value="proxyUrlList"
               show-sort-button
@@ -163,11 +221,17 @@
                     v-model:value="value.name"
                     type="text"
                     placeholder="名称"
-                    style="width: 40%" />
+                    style="width: 90px" />
                   <n-input
                     v-model:value="value.url"
                     type="text"
-                    placeholder="加速地址" />
+                    placeholder="加速地址"
+                    style="width: 210px" />
+                  <n-text
+                    :type="getSpeedTextColor(value)"
+                    style="width: 80px; margin-left: 12px"
+                    >{{ value.speed || "未测速" }}</n-text
+                  >
                 </div>
               </template>
             </n-dynamic-input>
@@ -218,7 +282,7 @@
   </n-drawer>
 </template>
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useStore } from "../utils/store.js";
 import {
   NFlex,
@@ -237,13 +301,16 @@ import {
   NText,
   NSelect,
   NSwitch,
+  NAlert,
 } from "naive-ui";
 const store = useStore();
 const proxyUrlList = ref([]);
+const isAutoTest = ref(false);
 const projectFileDownloadUrl = ref(null);
 const bypassDownload = ref(false);
 const clone = ref(true);
 const depth = ref(false);
+const isTesting = ref(false);
 const projectFileUrlList = computed(() => {
   var hasVal = false;
   proxyUrlList.value.find(function (value) {
@@ -260,11 +327,20 @@ const projectFileUrlList = computed(() => {
     disabled: !u.isCheck,
   }));
 });
+const getSpeedTextColor = (item) => {
+  if (!item.speed || item.speed === "未测速") return "info";
+  if (item.speed === "超时" || item.speed === "-1") return "error";
+  const ms = parseFloat(item.speed);
+  if (ms < 200) return "success";
+  if (ms < 500) return "warning";
+  return "error";
+};
 const onCreate = () => {
   return {
     isCheck: true,
     name: "",
     url: "",
+    speed: "未测速",
   };
 };
 const handleUpdateCloneValue = (value) => {
@@ -277,15 +353,93 @@ const handleUpdateDepthValue = (value) => {
     clone.value = true;
   }
 };
-const saveConfig = () => {
+const saveConfig = async () => {
+  await testAllEnabledUrls(true);
   GM_setValue("githubFastConfig", {
     projectFileDownloadUrl: projectFileDownloadUrl.value,
     proxyUrlList: proxyUrlList.value,
+    isAutoTest: isAutoTest.value,
     bypassDownload: bypassDownload.value,
     clone: clone.value,
     depth: depth.value,
   });
   GM.notification("配置更新成功，请刷新页面！");
+};
+const measureUrlSpeed = async (url) => {
+  try {
+    const startTime = performance.now();
+    const cleanedUrl = url.replace(/\/+$/, "");
+    const response = await fetch(
+      `${cleanedUrl}/https://raw.githubusercontent.com/XTLS/Xray-core/main/LICENSE`,
+      { method: "HEAD", mode: "no-cors" } // 避免跨域问题
+    );
+    const endTime = performance.now();
+    const speed = endTime - startTime;
+    return speed >= 0 ? `${speed.toFixed(0)}ms` : "-1";
+  } catch (error) {
+    console.error(`测速失败 [${url}]:`, error.message);
+    return "超时";
+  }
+};
+async function measureAllUrlsParallel(items) {
+  const results = await Promise.all(
+    items.map(async (item) => {
+      const speed = await measureUrlSpeed(item.url);
+      return { url: item.url, speed };
+    })
+  );
+  return results;
+}
+const testAllEnabledUrls = async (isNotify) => {
+  if (isTesting.value) return;
+  isTesting.value = true;
+
+  try {
+    const toTest = proxyUrlList.value
+      .filter((item) => item.isCheck && item.url?.trim())
+      .map((item) => ({ ...item }));
+
+    if (toTest.length === 0) {
+      GM.notification("没有启用的加速地址");
+      return;
+    }
+
+    const results = await measureAllUrlsParallel(toTest);
+
+    const updatedList = proxyUrlList.value.map((item) => {
+      const result = results.find((r) => r.url === item.url);
+      return result ? { ...item, speed: result.speed } : item;
+    });
+
+    // 排序逻辑
+    const sortedList = updatedList.sort((a, b) => {
+      const isValid = (s) =>
+        s &&
+        s !== "未测速" &&
+        s !== "超时" &&
+        s !== "-1" &&
+        !isNaN(parseFloat(s));
+      const validA = isValid(a.speed);
+      const validB = isValid(b.speed);
+
+      if (validA && !validB) return -1;
+      if (!validA && validB) return 1;
+      if (!validA && !validB) return 0;
+
+      return parseFloat(a.speed) - parseFloat(b.speed);
+    });
+
+    proxyUrlList.value = sortedList;
+    if (isNotify) {
+      GM.notification(`测速完成，已检测 ${toTest.length} 个加速地址`);
+    }
+  } catch (err) {
+    if (isNotify) {
+      GM.notification("测速失败，请检查网络");
+    }
+  } finally {
+    isTesting.value = false;
+  }
 };
 const initData = () => {
   const config = GM_getValue("githubFastConfig");
@@ -295,6 +449,12 @@ const initData = () => {
     bypassDownload.value = config.bypassDownload;
     clone.value = config.clone;
     depth.value = config.depth;
+    if (config.isAutoTest) {
+      testAllEnabledUrls(false).then(() => {
+        config.proxyUrlList = proxyUrlList.value;
+        GM_setValue("githubFastConfig", config);
+      });
+    }
   }
 };
 initData();

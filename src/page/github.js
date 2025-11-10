@@ -51,6 +51,12 @@ export function run(elmGetter) {
   setReleaseBtn();
   setOnlineEditorBtn();
   function callback(mutations, _observer) {
+    const hasSignUpCheck = mutations.some((mutation) => {
+      if ($("a[class*='HeaderMenu-link--sign-up']").length > 0) {
+        return true;
+      }
+      return false;
+    });
     mutations.forEach((mutation) => {
       if (mutation.type == "childList" && mutation.addedNodes.length > 0) {
         mutation.addedNodes.forEach((node) => {
@@ -66,23 +72,29 @@ export function run(elmGetter) {
           } catch (exceptionVar) {}
         });
       }
+      if (mutation.type == "childList") {
+        if (mutation.target.id === "__primerPortalRoot__") {
+          if (hasSignUpCheck && $("#__primerPortalRoot__").html().length > 0) {
+            addCloneDownloadBtn();
+          } else if (
+            hasSignUpCheck &&
+            $("#__primerPortalRoot__").html().length == 0
+          ) {
+            cleanCloneDownloadBtn();
+          }
+        }
+      }
+      //code clone tab
+      //1. is login
       if (
         mutation.target &&
         mutation.target.tagName === "BUTTON" &&
         typeof mutation.target.getAttribute("class") == "string" &&
         mutation.target.getAttribute("class").includes("TabNav-item") &&
         mutation.target.getAttribute("aria-selected") === "true" &&
-        $(mutation.target).find("span").find("span").text() === "Local"
+        mutation.target.getAttribute("class").includes("selected")
       ) {
-        $(".fast-zip").remove();
-        addDownZipList();
-        if (
-          isShow($("#clone-with-https")) &&
-          $("#clone-with-https").length > 0
-        ) {
-          $(".fast-clone").remove();
-          addCloneList();
-        }
+        addCloneDownloadBtn();
       }
       if (
         mutation.type === "attributes" &&
@@ -116,6 +128,18 @@ export function run(elmGetter) {
         setRawBtn();
       }
     });
+  }
+  function addCloneDownloadBtn() {
+    $(".fast-zip").remove();
+    addDownZipList();
+    if (isShow($("#clone-with-https")) && $("#clone-with-https").length > 0) {
+      $(".fast-clone").remove();
+      addCloneList();
+    }
+  }
+  function cleanCloneDownloadBtn() {
+    $(".fast-zip").remove();
+    $(".fast-clone").remove();
   }
   function isShow(target) {
     if (target.is(":visible")) {
@@ -257,7 +281,7 @@ export function run(elmGetter) {
   </a>`;
       });
       return `
-        <div data-view-component="true" class="d-flex ml-md-3 fast-release">
+        <div data-view-component="true" class="d-flex ml-md-3 flex-items-center fast-release">
   <svg
     t="1668210029451"
     class="icon"
@@ -289,6 +313,8 @@ export function run(elmGetter) {
         rawCloneBtn.addClass("fast-raw");
         rawCloneBtn.text(u.name);
         rawCloneBtn.attr("href", url);
+        rawCloneBtn.attr("target", "_blank");
+        rawCloneBtn.attr("style", "border-radius: 0;border-left: none");
         $('a[data-testid="raw-button"]').eq(index).after(rawCloneBtn);
       });
     }
@@ -353,7 +379,6 @@ export function run(elmGetter) {
   }
   //轮询下载地址
   function pollingUrl() {
-    console.log(config.proxyUrlList);
     const filteredUrlList = config.proxyUrlList.filter((item) => {
       return item.isCheck;
     });
