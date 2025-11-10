@@ -10,12 +10,12 @@
 // @include      *://github*
 // @require      https://scriptcat.org/lib/513/2.0.1/ElementGetter.js#sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=
 // @require      data:application/javascript,window.elmGetter%3DelmGetter
-// @require      https://registry.npmmirror.com/vue/3.5.13/files/dist/vue.global.prod.js
+// @require      https://registry.npmmirror.com/vue/3.5.24/files/dist/vue.global.prod.js
 // @require      https://registry.npmmirror.com/vue-demi/0.14.10/files/lib/index.iife.js
 // @require      data:application/javascript,%3Bwindow.Vue%3DVue%3B
 // @require      https://registry.npmmirror.com/jquery/3.7.1/files
-// @require      https://unpkg.com/naive-ui@2.41.0/dist/index.prod.js
-// @require      https://registry.npmmirror.com/pinia/3.0.2/files/dist/pinia.iife.prod.js
+// @require      https://unpkg.com/naive-ui@2.43.1/dist/index.prod.js
+// @require      https://registry.npmmirror.com/pinia/3.0.4/files/dist/pinia.iife.prod.js
 // @grant        GM.notification
 // @grant        GM.registerMenuCommand
 // @grant        GM_getValue
@@ -37,10 +37,12 @@
     setup(__props) {
       const store = useStore();
       const proxyUrlList = vue.ref([]);
+      const isAutoTest = vue.ref(false);
       const projectFileDownloadUrl = vue.ref(null);
       const bypassDownload = vue.ref(false);
       const clone = vue.ref(true);
       const depth = vue.ref(false);
+      const isTesting = vue.ref(false);
       const projectFileUrlList = vue.computed(() => {
         var hasVal = false;
         proxyUrlList.value.find(function(value) {
@@ -57,11 +59,20 @@
           disabled: !u.isCheck
         }));
       });
+      const getSpeedTextColor = (item) => {
+        if (!item.speed || item.speed === "未测速") return "info";
+        if (item.speed === "超时" || item.speed === "-1") return "error";
+        const ms = parseFloat(item.speed);
+        if (ms < 200) return "success";
+        if (ms < 500) return "warning";
+        return "error";
+      };
       const onCreate = () => {
         return {
           isCheck: true,
           name: "",
-          url: ""
+          url: "",
+          speed: "未测速"
         };
       };
       const handleUpdateCloneValue = (value) => {
@@ -74,15 +85,77 @@
           clone.value = true;
         }
       };
-      const saveConfig = () => {
+      const saveConfig = async () => {
+        await testAllEnabledUrls(true);
         GM_setValue("githubFastConfig", {
           projectFileDownloadUrl: projectFileDownloadUrl.value,
           proxyUrlList: proxyUrlList.value,
+          isAutoTest: isAutoTest.value,
           bypassDownload: bypassDownload.value,
           clone: clone.value,
           depth: depth.value
         });
         GM.notification("配置更新成功，请刷新页面！");
+      };
+      const measureUrlSpeed = async (url) => {
+        try {
+          const startTime = performance.now();
+          const cleanedUrl = url.replace(/\/+$/, "");
+          const response = await fetch(
+            `${cleanedUrl}/https://raw.githubusercontent.com/XTLS/Xray-core/main/LICENSE`,
+            { method: "HEAD", mode: "no-cors" }
+);
+          const endTime = performance.now();
+          const speed = endTime - startTime;
+          return speed >= 0 ? `${speed.toFixed(0)}ms` : "-1";
+        } catch (error) {
+          console.error(`测速失败 [${url}]:`, error.message);
+          return "超时";
+        }
+      };
+      async function measureAllUrlsParallel(items) {
+        const results = await Promise.all(
+          items.map(async (item) => {
+            const speed = await measureUrlSpeed(item.url);
+            return { url: item.url, speed };
+          })
+        );
+        return results;
+      }
+      const testAllEnabledUrls = async (isNotify) => {
+        if (isTesting.value) return;
+        isTesting.value = true;
+        try {
+          const toTest = proxyUrlList.value.filter((item) => item.isCheck && item.url?.trim()).map((item) => ({ ...item }));
+          if (toTest.length === 0) {
+            GM.notification("没有启用的加速地址");
+            return;
+          }
+          const results = await measureAllUrlsParallel(toTest);
+          const updatedList = proxyUrlList.value.map((item) => {
+            const result = results.find((r) => r.url === item.url);
+            return result ? { ...item, speed: result.speed } : item;
+          });
+          const sortedList = updatedList.sort((a, b) => {
+            const isValid = (s) => s && s !== "未测速" && s !== "超时" && s !== "-1" && !isNaN(parseFloat(s));
+            const validA = isValid(a.speed);
+            const validB = isValid(b.speed);
+            if (validA && !validB) return -1;
+            if (!validA && validB) return 1;
+            if (!validA && !validB) return 0;
+            return parseFloat(a.speed) - parseFloat(b.speed);
+          });
+          proxyUrlList.value = sortedList;
+          if (isNotify) {
+            GM.notification(`测速完成，已检测 ${toTest.length} 个加速地址`);
+          }
+        } catch (err) {
+          if (isNotify) {
+            GM.notification("测速失败，请检查网络");
+          }
+        } finally {
+          isTesting.value = false;
+        }
       };
       const initData = () => {
         const config = GM_getValue("githubFastConfig");
@@ -92,6 +165,12 @@
           bypassDownload.value = config.bypassDownload;
           clone.value = config.clone;
           depth.value = config.depth;
+          if (config.isAutoTest) {
+            testAllEnabledUrls(false).then(() => {
+              config.proxyUrlList = proxyUrlList.value;
+              GM_setValue("githubFastConfig", config);
+            });
+          }
         }
       };
       initData();
@@ -101,14 +180,14 @@
       return (_ctx, _cache) => {
         return vue.openBlock(), vue.createBlock(vue.unref(naiveUi.NDrawer), {
           show: vue.unref(store).showConfig,
-          "onUpdate:show": _cache[6] || (_cache[6] = ($event) => vue.unref(store).showConfig = $event),
-          width: 502
+          "onUpdate:show": _cache[7] || (_cache[7] = ($event) => vue.unref(store).showConfig = $event),
+          width: 630
         }, {
           default: vue.withCtx(() => [
             vue.createVNode(vue.unref(naiveUi.NDrawerContent), { closable: "" }, {
-              header: vue.withCtx(() => _cache[7] || (_cache[7] = [
-                vue.createTextVNode(" GitHub加速配置 ")
-              ])),
+              header: vue.withCtx(() => [..._cache[8] || (_cache[8] = [
+                vue.createTextVNode(" GitHub加速配置 ", -1)
+              ])]),
               default: vue.withCtx(() => [
                 vue.createElementVNode("div", _hoisted_1, [
                   vue.createVNode(vue.unref(naiveUi.NForm), {
@@ -128,7 +207,7 @@
                               }, {
                                 default: vue.withCtx(() => [
                                   vue.createVNode(vue.unref(naiveUi.NIcon), null, {
-                                    default: vue.withCtx(() => _cache[8] || (_cache[8] = [
+                                    default: vue.withCtx(() => [..._cache[9] || (_cache[9] = [
                                       vue.createElementVNode("svg", {
                                         xmlns: "http://www.w3.org/2000/svg",
                                         "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -167,16 +246,52 @@
                                           fill: "currentColor"
                                         })
                                       ], -1)
-                                    ])),
+                                    ])]),
                                     _: 1
                                   })
                                 ]),
                                 _: 1
                               }),
                               vue.createVNode(vue.unref(naiveUi.NText), { type: "primary" }, {
-                                default: vue.withCtx(() => _cache[9] || (_cache[9] = [
-                                  vue.createTextVNode(" 负载均衡 ")
-                                ])),
+                                default: vue.withCtx(() => [..._cache[10] || (_cache[10] = [
+                                  vue.createTextVNode(" 分流下载 ", -1)
+                                ])]),
+                                _: 1
+                              }),
+                              vue.createVNode(vue.unref(naiveUi.NTooltip), {
+                                trigger: "hover",
+                                placement: "right"
+                              }, {
+                                trigger: vue.withCtx(() => [
+                                  vue.createVNode(vue.unref(naiveUi.NButton), {
+                                    text: "",
+                                    style: { "font-size": "20px" }
+                                  }, {
+                                    default: vue.withCtx(() => [
+                                      vue.createVNode(vue.unref(naiveUi.NIcon), null, {
+                                        default: vue.withCtx(() => [..._cache[11] || (_cache[11] = [
+                                          vue.createElementVNode("svg", {
+                                            xmlns: "http://www.w3.org/2000/svg",
+                                            "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                                            viewBox: "0 0 16 16"
+                                          }, [
+                                            vue.createElementVNode("g", { fill: "none" }, [
+                                              vue.createElementVNode("path", {
+                                                d: "M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 8.5A.75.75 0 1 0 8 12a.75.75 0 0 0 0-1.5zm0-6a2 2 0 0 0-2 2a.5.5 0 0 0 1 0a1 1 0 0 1 2 0c0 .37-.083.58-.366.898l-.116.125l-.264.27C7.712 8.36 7.5 8.768 7.5 9.5a.5.5 0 0 0 1 0c0-.37.083-.58.366-.898l.116-.125l.264-.27C9.788 7.64 10 7.232 10 6.5a2 2 0 0 0-2-2z",
+                                                fill: "currentColor"
+                                              })
+                                            ])
+                                          ], -1)
+                                        ])]),
+                                        _: 1
+                                      })
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                default: vue.withCtx(() => [
+                                  _cache[12] || (_cache[12] = vue.createTextVNode(" 加速按钮只会显示一个，下载时轮询加速 ", -1))
+                                ]),
                                 _: 1
                               })
                             ]),
@@ -193,12 +308,12 @@
                             size: "large",
                             round: false
                           }, {
-                            checked: vue.withCtx(() => _cache[10] || (_cache[10] = [
-                              vue.createTextVNode(" 开启 ")
-                            ])),
-                            unchecked: vue.withCtx(() => _cache[11] || (_cache[11] = [
-                              vue.createTextVNode(" 关闭 ")
-                            ])),
+                            checked: vue.withCtx(() => [..._cache[13] || (_cache[13] = [
+                              vue.createTextVNode(" 开启 ", -1)
+                            ])]),
+                            unchecked: vue.withCtx(() => [..._cache[14] || (_cache[14] = [
+                              vue.createTextVNode(" 关闭 ", -1)
+                            ])]),
                             _: 1
                           }, 8, ["value"])
                         ]),
@@ -215,7 +330,7 @@
                               }, {
                                 default: vue.withCtx(() => [
                                   vue.createVNode(vue.unref(naiveUi.NIcon), null, {
-                                    default: vue.withCtx(() => _cache[12] || (_cache[12] = [
+                                    default: vue.withCtx(() => [..._cache[15] || (_cache[15] = [
                                       vue.createElementVNode("svg", {
                                         xmlns: "http://www.w3.org/2000/svg",
                                         "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -226,16 +341,16 @@
                                           fill: "currentColor"
                                         })
                                       ], -1)
-                                    ])),
+                                    ])]),
                                     _: 1
                                   })
                                 ]),
                                 _: 1
                               }),
                               vue.createVNode(vue.unref(naiveUi.NText), { type: "primary" }, {
-                                default: vue.withCtx(() => _cache[13] || (_cache[13] = [
-                                  vue.createTextVNode(" 克隆 ")
-                                ])),
+                                default: vue.withCtx(() => [..._cache[16] || (_cache[16] = [
+                                  vue.createTextVNode(" 克隆 ", -1)
+                                ])]),
                                 _: 1
                               })
                             ]),
@@ -283,7 +398,7 @@
                               }, {
                                 default: vue.withCtx(() => [
                                   vue.createVNode(vue.unref(naiveUi.NIcon), null, {
-                                    default: vue.withCtx(() => _cache[14] || (_cache[14] = [
+                                    default: vue.withCtx(() => [..._cache[17] || (_cache[17] = [
                                       vue.createElementVNode("svg", {
                                         xmlns: "http://www.w3.org/2000/svg",
                                         "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -296,16 +411,16 @@
                                           })
                                         ])
                                       ], -1)
-                                    ])),
+                                    ])]),
                                     _: 1
                                   })
                                 ]),
                                 _: 1
                               }),
                               vue.createVNode(vue.unref(naiveUi.NText), { type: "primary" }, {
-                                default: vue.withCtx(() => _cache[15] || (_cache[15] = [
-                                  vue.createTextVNode(" 仓库文件加速 ")
-                                ])),
+                                default: vue.withCtx(() => [..._cache[18] || (_cache[18] = [
+                                  vue.createTextVNode(" 仓库文件加速 ", -1)
+                                ])]),
                                 _: 1
                               })
                             ]),
@@ -325,7 +440,7 @@
                           }, {
                             arrow: vue.withCtx(() => [
                               vue.createVNode(vue.Transition, { name: "slide-left" }, {
-                                default: vue.withCtx(() => _cache[16] || (_cache[16] = [
+                                default: vue.withCtx(() => [..._cache[19] || (_cache[19] = [
                                   vue.createElementVNode("svg", {
                                     xmlns: "http://www.w3.org/2000/svg",
                                     "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -338,7 +453,7 @@
                                       })
                                     ])
                                   ], -1)
-                                ])),
+                                ])]),
                                 _: 1
                               })
                             ]),
@@ -349,53 +464,25 @@
                       }),
                       vue.createVNode(vue.unref(naiveUi.NH3), null, {
                         default: vue.withCtx(() => [
-                          vue.createVNode(vue.unref(naiveUi.NFlex), { style: { "gap": "3px" } }, {
+                          vue.createVNode(vue.unref(naiveUi.NFlex), {
+                            style: { "gap": "3px" },
+                            align: "center",
+                            justify: "space-between"
+                          }, {
                             default: vue.withCtx(() => [
-                              vue.createVNode(vue.unref(naiveUi.NButton), {
-                                text: "",
-                                style: { "font-size": "20px" },
-                                type: "primary"
+                              vue.createVNode(vue.unref(naiveUi.NFlex), {
+                                style: { "gap": "3px" },
+                                align: "center"
                               }, {
                                 default: vue.withCtx(() => [
-                                  vue.createVNode(vue.unref(naiveUi.NIcon), null, {
-                                    default: vue.withCtx(() => _cache[17] || (_cache[17] = [
-                                      vue.createElementVNode("svg", {
-                                        xmlns: "http://www.w3.org/2000/svg",
-                                        "xmlns:xlink": "http://www.w3.org/1999/xlink",
-                                        viewBox: "0 0 16 16"
-                                      }, [
-                                        vue.createElementVNode("g", { fill: "none" }, [
-                                          vue.createElementVNode("path", {
-                                            d: "M4.968 1.544A.75.75 0 0 1 5.688 1h4.951a.75.75 0 0 1 .703 1.013L10.222 5h2.198a.75.75 0 0 1 .545 1.265l-8.101 8.578a.5.5 0 0 1-.849-.464L5.36 9H3.832a.75.75 0 0 1-.722-.956l1.858-6.5zm.91.456L4.162 8H6a.5.5 0 0 1 .485.621L5.45 12.767L11.84 6H9.5a.5.5 0 0 1-.468-.676L10.279 2H5.877z",
-                                            fill: "currentColor"
-                                          })
-                                        ])
-                                      ], -1)
-                                    ])),
-                                    _: 1
-                                  })
-                                ]),
-                                _: 1
-                              }),
-                              vue.createVNode(vue.unref(naiveUi.NText), { type: "primary" }, {
-                                default: vue.withCtx(() => _cache[18] || (_cache[18] = [
-                                  vue.createTextVNode(" 加速列表")
-                                ])),
-                                _: 1
-                              }),
-                              vue.createVNode(vue.unref(naiveUi.NTooltip), {
-                                trigger: "hover",
-                                placement: "right"
-                              }, {
-                                trigger: vue.withCtx(() => [
                                   vue.createVNode(vue.unref(naiveUi.NButton), {
                                     text: "",
                                     style: { "font-size": "20px" },
-                                    onClick: handleClick
+                                    type: "primary"
                                   }, {
                                     default: vue.withCtx(() => [
                                       vue.createVNode(vue.unref(naiveUi.NIcon), null, {
-                                        default: vue.withCtx(() => _cache[19] || (_cache[19] = [
+                                        default: vue.withCtx(() => [..._cache[20] || (_cache[20] = [
                                           vue.createElementVNode("svg", {
                                             xmlns: "http://www.w3.org/2000/svg",
                                             "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -403,20 +490,104 @@
                                           }, [
                                             vue.createElementVNode("g", { fill: "none" }, [
                                               vue.createElementVNode("path", {
-                                                d: "M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 8.5A.75.75 0 1 0 8 12a.75.75 0 0 0 0-1.5zm0-6a2 2 0 0 0-2 2a.5.5 0 0 0 1 0a1 1 0 0 1 2 0c0 .37-.083.58-.366.898l-.116.125l-.264.27C7.712 8.36 7.5 8.768 7.5 9.5a.5.5 0 0 0 1 0c0-.37.083-.58.366-.898l.116-.125l.264-.27C9.788 7.64 10 7.232 10 6.5a2 2 0 0 0-2-2z",
+                                                d: "M4.968 1.544A.75.75 0 0 1 5.688 1h4.951a.75.75 0 0 1 .703 1.013L10.222 5h2.198a.75.75 0 0 1 .545 1.265l-8.101 8.578a.5.5 0 0 1-.849-.464L5.36 9H3.832a.75.75 0 0 1-.722-.956l1.858-6.5zm.91.456L4.162 8H6a.5.5 0 0 1 .485.621L5.45 12.767L11.84 6H9.5a.5.5 0 0 1-.468-.676L10.279 2H5.877z",
                                                 fill: "currentColor"
                                               })
                                             ])
                                           ], -1)
-                                        ])),
+                                        ])]),
                                         _: 1
                                       })
                                     ]),
                                     _: 1
+                                  }),
+                                  vue.createVNode(vue.unref(naiveUi.NText), { type: "primary" }, {
+                                    default: vue.withCtx(() => [..._cache[21] || (_cache[21] = [
+                                      vue.createTextVNode(" 加速列表", -1)
+                                    ])]),
+                                    _: 1
                                   })
                                 ]),
+                                _: 1
+                              }),
+                              vue.createVNode(vue.unref(naiveUi.NFlex), {
+                                style: { "gap": "8px" },
+                                align: "center"
+                              }, {
                                 default: vue.withCtx(() => [
-                                  _cache[20] || (_cache[20] = vue.createTextVNode(" GitHub镜像站点，没有代理的话可以逛逛 "))
+                                  vue.createVNode(vue.unref(naiveUi.NSwitch), {
+                                    value: isAutoTest.value,
+                                    "onUpdate:value": _cache[4] || (_cache[4] = ($event) => isAutoTest.value = $event),
+                                    size: "small",
+                                    round: false
+                                  }, null, 8, ["value"]),
+                                  vue.createVNode(vue.unref(naiveUi.NButton), {
+                                    size: "tiny",
+                                    round: "",
+                                    type: "primary",
+                                    onClick: testAllEnabledUrls,
+                                    loading: isTesting.value,
+                                    style: { "min-width": "80px" }
+                                  }, {
+                                    icon: vue.withCtx(() => [..._cache[22] || (_cache[22] = [
+                                      vue.createElementVNode("svg", {
+                                        xmlns: "http://www.w3.org/2000/svg",
+                                        viewBox: "0 0 24 24",
+                                        width: "16",
+                                        height: "16"
+                                      }, [
+                                        vue.createElementVNode("path", {
+                                          fill: "none",
+                                          d: "M0 0h24v24H0z"
+                                        }),
+                                        vue.createElementVNode("path", {
+                                          d: "M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-8h4v2h-6V7h2v5z",
+                                          fill: "currentColor"
+                                        })
+                                      ], -1)
+                                    ])]),
+                                    default: vue.withCtx(() => [
+                                      vue.createTextVNode(" " + vue.toDisplayString(isTesting.value ? "测速中..." : "测速"), 1)
+                                    ]),
+                                    _: 1
+                                  }, 8, ["loading"]),
+                                  vue.createVNode(vue.unref(naiveUi.NTooltip), {
+                                    trigger: "hover",
+                                    placement: "right"
+                                  }, {
+                                    trigger: vue.withCtx(() => [
+                                      vue.createVNode(vue.unref(naiveUi.NButton), {
+                                        text: "",
+                                        style: { "font-size": "20px" },
+                                        onClick: handleClick
+                                      }, {
+                                        default: vue.withCtx(() => [
+                                          vue.createVNode(vue.unref(naiveUi.NIcon), null, {
+                                            default: vue.withCtx(() => [..._cache[23] || (_cache[23] = [
+                                              vue.createElementVNode("svg", {
+                                                xmlns: "http://www.w3.org/2000/svg",
+                                                "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                                                viewBox: "0 0 16 16"
+                                              }, [
+                                                vue.createElementVNode("g", { fill: "none" }, [
+                                                  vue.createElementVNode("path", {
+                                                    d: "M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 8.5A.75.75 0 1 0 8 12a.75.75 0 0 0 0-1.5zm0-6a2 2 0 0 0-2 2a.5.5 0 0 0 1 0a1 1 0 0 1 2 0c0 .37-.083.58-.366.898l-.116.125l-.264.27C7.712 8.36 7.5 8.768 7.5 9.5a.5.5 0 0 0 1 0c0-.37.083-.58.366-.898l.116-.125l.264-.27C9.788 7.64 10 7.232 10 6.5a2 2 0 0 0-2-2z",
+                                                    fill: "currentColor"
+                                                  })
+                                                ])
+                                              ], -1)
+                                            ])]),
+                                            _: 1
+                                          })
+                                        ]),
+                                        _: 1
+                                      })
+                                    ]),
+                                    default: vue.withCtx(() => [
+                                      _cache[24] || (_cache[24] = vue.createTextVNode(" GitHub镜像站点，没有代理的话可以逛逛 ", -1))
+                                    ]),
+                                    _: 1
+                                  })
                                 ]),
                                 _: 1
                               })
@@ -426,17 +597,26 @@
                         ]),
                         _: 1
                       }),
-                      vue.createVNode(vue.unref(naiveUi.NFormItem), null, {
+                      vue.createVNode(vue.unref(naiveUi.NAlert), {
+                        "show-icon": false,
+                        bordered: false
+                      }, {
+                        default: vue.withCtx(() => [..._cache[25] || (_cache[25] = [
+                          vue.createTextVNode(" 开启自动检测后，每次打开GitHub会进行一次测速，测速后将按照速度进行排序。 ", -1)
+                        ])]),
+                        _: 1
+                      }),
+                      vue.createVNode(vue.unref(naiveUi.NFormItem), { class: "mt-4" }, {
                         default: vue.withCtx(() => [
                           vue.createVNode(vue.unref(naiveUi.NDynamicInput), {
                             value: proxyUrlList.value,
-                            "onUpdate:value": _cache[4] || (_cache[4] = ($event) => proxyUrlList.value = $event),
+                            "onUpdate:value": _cache[5] || (_cache[5] = ($event) => proxyUrlList.value = $event),
                             "show-sort-button": "",
                             "on-create": onCreate
                           }, {
-                            "create-button-default": vue.withCtx(() => _cache[21] || (_cache[21] = [
-                              vue.createTextVNode(" 添加 ")
-                            ])),
+                            "create-button-default": vue.withCtx(() => [..._cache[26] || (_cache[26] = [
+                              vue.createTextVNode(" 添加 ", -1)
+                            ])]),
                             default: vue.withCtx(({ value }) => [
                               vue.createElementVNode("div", _hoisted_2, [
                                 vue.createVNode(vue.unref(naiveUi.NCheckbox), {
@@ -450,14 +630,24 @@
                                   "onUpdate:value": ($event) => value.name = $event,
                                   type: "text",
                                   placeholder: "名称",
-                                  style: { "width": "40%" }
+                                  style: { "width": "90px" }
                                 }, null, 8, ["value", "onUpdate:value"]),
                                 vue.createVNode(vue.unref(naiveUi.NInput), {
                                   value: value.url,
                                   "onUpdate:value": ($event) => value.url = $event,
                                   type: "text",
-                                  placeholder: "加速地址"
-                                }, null, 8, ["value", "onUpdate:value"])
+                                  placeholder: "加速地址",
+                                  style: { "width": "210px" }
+                                }, null, 8, ["value", "onUpdate:value"]),
+                                vue.createVNode(vue.unref(naiveUi.NText), {
+                                  type: getSpeedTextColor(value),
+                                  style: { "width": "80px", "margin-left": "12px" }
+                                }, {
+                                  default: vue.withCtx(() => [
+                                    vue.createTextVNode(vue.toDisplayString(value.speed || "未测速"), 1)
+                                  ]),
+                                  _: 2
+                                }, 1032, ["type"])
                               ])
                             ]),
                             _: 1
@@ -474,7 +664,7 @@
                             strong: "",
                             onClick: saveConfig
                           }, {
-                            icon: vue.withCtx(() => _cache[22] || (_cache[22] = [
+                            icon: vue.withCtx(() => [..._cache[27] || (_cache[27] = [
                               vue.createElementVNode("svg", {
                                 xmlns: "http://www.w3.org/2000/svg",
                                 "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -487,9 +677,9 @@
                                   })
                                 ])
                               ], -1)
-                            ])),
+                            ])]),
                             default: vue.withCtx(() => [
-                              _cache[23] || (_cache[23] = vue.createTextVNode(" 保存配置 "))
+                              _cache[28] || (_cache[28] = vue.createTextVNode(" 保存配置 ", -1))
                             ]),
                             _: 1
                           }),
@@ -498,9 +688,9 @@
                             type: "default",
                             size: "medium",
                             strong: "",
-                            onClick: _cache[5] || (_cache[5] = ($event) => vue.unref(store).showConfig = false)
+                            onClick: _cache[6] || (_cache[6] = ($event) => vue.unref(store).showConfig = false)
                           }, {
-                            icon: vue.withCtx(() => _cache[24] || (_cache[24] = [
+                            icon: vue.withCtx(() => [..._cache[29] || (_cache[29] = [
                               vue.createElementVNode("svg", {
                                 xmlns: "http://www.w3.org/2000/svg",
                                 "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -511,9 +701,9 @@
                                   fill: "currentColor"
                                 })
                               ], -1)
-                            ])),
+                            ])]),
                             default: vue.withCtx(() => [
-                              _cache[25] || (_cache[25] = vue.createTextVNode(" 关闭 "))
+                              _cache[30] || (_cache[30] = vue.createTextVNode(" 关闭 ", -1))
                             ]),
                             _: 1
                           })
@@ -612,6 +802,12 @@
     setReleaseBtn();
     setOnlineEditorBtn();
     function callback(mutations, _observer) {
+      const hasSignUpCheck = mutations.some((mutation) => {
+        if ($("a[class*='HeaderMenu-link--sign-up']").length > 0) {
+          return true;
+        }
+        return false;
+      });
       mutations.forEach((mutation) => {
         if (mutation.type == "childList" && mutation.addedNodes.length > 0) {
           mutation.addedNodes.forEach((node) => {
@@ -623,13 +819,17 @@
             }
           });
         }
-        if (mutation.target && mutation.target.tagName === "BUTTON" && typeof mutation.target.getAttribute("class") == "string" && mutation.target.getAttribute("class").includes("TabNav-item") && mutation.target.getAttribute("aria-selected") === "true" && $(mutation.target).find("span").find("span").text() === "Local") {
-          $(".fast-zip").remove();
-          addDownZipList();
-          if (isShow($("#clone-with-https")) && $("#clone-with-https").length > 0) {
-            $(".fast-clone").remove();
-            addCloneList();
+        if (mutation.type == "childList") {
+          if (mutation.target.id === "__primerPortalRoot__") {
+            if (hasSignUpCheck && $("#__primerPortalRoot__").html().length > 0) {
+              addCloneDownloadBtn();
+            } else if (hasSignUpCheck && $("#__primerPortalRoot__").html().length == 0) {
+              cleanCloneDownloadBtn();
+            }
           }
+        }
+        if (mutation.target && mutation.target.tagName === "BUTTON" && typeof mutation.target.getAttribute("class") == "string" && mutation.target.getAttribute("class").includes("TabNav-item") && mutation.target.getAttribute("aria-selected") === "true" && mutation.target.getAttribute("class").includes("selected")) {
+          addCloneDownloadBtn();
         }
         if (mutation.type === "attributes" && mutation.attributeName == "aria-current" && mutation.target.tagName === "A" && mutation.target.getAttribute("aria-current") === "page") {
           if ($(mutation.target).find("span").text() === "HTTPS") {
@@ -648,6 +848,18 @@
           setRawBtn();
         }
       });
+    }
+    function addCloneDownloadBtn() {
+      $(".fast-zip").remove();
+      addDownZipList();
+      if (isShow($("#clone-with-https")) && $("#clone-with-https").length > 0) {
+        $(".fast-clone").remove();
+        addCloneList();
+      }
+    }
+    function cleanCloneDownloadBtn() {
+      $(".fast-zip").remove();
+      $(".fast-clone").remove();
     }
     function isShow(target) {
       if (target.is(":visible")) {
@@ -777,7 +989,7 @@
   </a>`;
         });
         return `
-        <div data-view-component="true" class="d-flex ml-md-3 fast-release">
+        <div data-view-component="true" class="d-flex ml-md-3 flex-items-center fast-release">
   <svg
     t="1668210029451"
     class="icon"
@@ -808,6 +1020,8 @@
           rawCloneBtn.addClass("fast-raw");
           rawCloneBtn.text(u.name);
           rawCloneBtn.attr("href", url);
+          rawCloneBtn.attr("target", "_blank");
+          rawCloneBtn.attr("style", "border-radius: 0;border-left: none");
           $('a[data-testid="raw-button"]').eq(index).after(rawCloneBtn);
         });
       }
@@ -860,7 +1074,6 @@
       );
     }
     function pollingUrl() {
-      console.log(config.proxyUrlList);
       const filteredUrlList = config.proxyUrlList.filter((item) => {
         return item.isCheck;
       });
@@ -880,7 +1093,7 @@
       return proxyUrl;
     }
   }
-  var _monkeyWindow = /* @__PURE__ */ (() => window)();
+  var _monkeyWindow = (() => window)();
   const pinia = pinia$1.createPinia();
   const app = vue.createApp(_sfc_main);
   app.use(pinia);
