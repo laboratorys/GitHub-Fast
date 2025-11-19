@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub加速下载
 // @namespace    https://github.com/laboratorys/github-fast
-// @version      1.0.3
+// @version      1.0.4
 // @author       Libs
 // @description  可自定义配置的GitHub加速下载脚本
 // @license      MIT License
