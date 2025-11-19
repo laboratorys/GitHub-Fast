@@ -237,6 +237,7 @@ export function run(elmGetter) {
   function addDownZipList() {
     MirrorUrl.forEach((u) => {
       let downZipClone = $("#__primerPortalRoot__")
+        .find("div[class^='react-overview-code-button-action-list']")
         .find("ul:last")
         .find("li:eq(1)")
         .clone();

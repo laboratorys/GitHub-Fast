@@ -20,7 +20,7 @@ export default defineConfig({
           "https://scriptcat.org/lib/513/2.0.1/ElementGetter.js#sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=",
           util.dataUrl(`window.elmGetter=elmGetter`),
         ],
-        version: "1.0.4",
+        version: "1.0.5",
       },
       build: {
         externalGlobals: {
