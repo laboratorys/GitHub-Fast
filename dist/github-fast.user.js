@@ -790,7 +790,7 @@
     }
     function setReleaseBtn() {
       if (window.location.pathname.split("/")[3] == "releases") {
-        addReleaseList($('div[class="Box Box--condensed mt-3"]'));
+        addReleaseList($('div[class="Box Box--condensed tmp-mt-3"]'));
       }
     }
     function setOnlineEditorBtn() {
@@ -961,6 +961,7 @@
       });
     }
     function addReleaseList(target) {
+      console.log(target);
       target.find(".fast-release").remove();
       let releaseLi = target.find("ul").find("li");
       releaseLi.each(function() {
