@@ -35,7 +35,7 @@ export function run(elmGetter) {
   }
   function setReleaseBtn() {
     if (window.location.pathname.split("/")[3] == "releases") {
-      addReleaseList($('div[class="Box Box--condensed mt-3"]'));
+      addReleaseList($('div[class="Box Box--condensed tmp-mt-3"]'));
     }
   }
   function setOnlineEditorBtn() {
@@ -254,6 +254,7 @@ export function run(elmGetter) {
   }
   //release列表
   function addReleaseList(target) {
+    console.log(target);
     target.find(".fast-release").remove();
     let releaseLi = target.find("ul").find("li");
     releaseLi.each(function () {
@@ -334,8 +335,8 @@ export function run(elmGetter) {
             : MirrorUrl[0].url) +
             "/https://github.com" +
             dLink,
-          "main.go"
-        )
+          "main.go",
+        ),
       );
     function listDownHtml(Url, Name) {
       return `<a href="${Url}" download="${Name}" target="_blank" rel="noreferrer noopener nofollow" class="fileDownLink" title="${Url}" style='display:none'><svg
@@ -365,7 +366,7 @@ export function run(elmGetter) {
         function () {
           $(this).css("display", "inline");
           $(this).parent().find(".fileDownLink").css("display", "none");
-        }
+        },
       );
     target.find(".fileDownLink").hover(
       function () {
@@ -375,7 +376,7 @@ export function run(elmGetter) {
       function () {
         $(this).css("display", "none");
         $(this).parent().find("svg:first").css("display", "inline");
-      }
+      },
     );
   }
   //轮询下载地址
