@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub加速下载
 // @namespace    https://github.com/laboratorys/github-fast
-// @version      1.0.4
+// @version      1.0.5
 // @author       Libs
 // @description  可自定义配置的GitHub加速下载脚本
 // @license      MIT License
@@ -948,7 +948,7 @@
     }
     function addDownZipList() {
       MirrorUrl.forEach((u) => {
-        let downZipClone = $("#__primerPortalRoot__").find("ul:last").find("li:eq(1)").clone();
+        let downZipClone = $("#__primerPortalRoot__").find("div[class^='react-overview-code-button-action-list']").find("ul:last").find("li:eq(1)").clone();
         downZipClone.addClass("fast-zip");
         var zipPath = downZipClone.find("a").attr("href");
         var Url = u.url + "/https://github.com/" + zipPath;
