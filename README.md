@@ -1,5 +1,7 @@
 # Github-Fast
 
+> 声明：本项目为自用脚本，公开只为方便需要它的人，如果你认为它不好用，请您立即卸载，issues只欢迎正常反馈。
+
 **Github 加速下载[油猴脚本](https://greasyfork.org/zh-CN/scripts/504224-github%E5%8A%A0%E9%80%9F%E4%B8%8B%E8%BD%BD)（自用）**
 
 ## 特性
@@ -29,6 +31,12 @@
 [issues](https://github.com/laboratorys/GitHub-Fast/issues)
 
 ## 更新日志
+
+### v1.0.8-2026/04/01
+
+#### Bug Fix
+
+- 优化列表文件下载按钮显示
 
 ### v1.0.7-2026/03/24
 

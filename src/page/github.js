@@ -8,11 +8,37 @@ export function run(elmGetter) {
   const injectCSS = () => {
     const style = document.createElement("style");
     style.innerHTML = `
-      .react-directory-filename-column { display: flex !important; align-items: center !important; flex-direction: row !important; }
-      .react-directory-filename-column:hover > svg:first-child { display: none !important; }
-      .react-directory-filename-column:hover .fileDownLink { display: inline-flex !important; }
-      .fileDownLink { display: none !important; margin-right: 8px; flex-shrink: 0; vertical-align: middle; }
-      .react-directory-filename-column .Link--primary { word-break: break-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .react-directory-filename-column { 
+        position: relative !important; 
+      }
+      .fileDownWrapper {
+        position: absolute !important;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        background: transparent !important;
+        z-index: 10;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .fileDownWrapper .fileDownLink { 
+        display: none !important; 
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        background: transparent !important;
+      }
+      .fileDownWrapper:hover + svg.octicon-file { 
+        opacity: 0 !important; 
+      }
+      .fileDownWrapper:hover .fileDownLink { 
+        display: inline-flex !important; 
+      }
       .fast-clone-wrapper { margin-top: 12px; width: 100%; border: none !important; }
       .palegreen { color: palegreen; font-weight: 600; font-size: 12px; margin-bottom: 6px; display: block; }
       .fast-clone-row { display: flex !important; align-items: center !important; gap: 8px; margin-top: 8px; }
@@ -60,23 +86,38 @@ export function run(elmGetter) {
   function setListDownBtn() {
     const $table = $("table[aria-labelledby='folders-and-files']");
     if ($table.length === 0) return;
+
     $table.find("tr").each(function () {
       const $row = $(this);
       if ($row.data("has-down-btn")) return;
+
       const $nameCol = $row.find("div.react-directory-filename-column");
       if ($nameCol.length > 0) {
         const $svg = $nameCol.find("svg:first");
-        if (!($svg.attr("class") || "").includes("icon-directory")) {
+        const isFileIcon =
+          $svg.hasClass("octicon-file") &&
+          !$svg.hasClass("octicon-file-directory-fill") &&
+          !$svg.hasClass("icon-directory");
+
+        if (isFileIcon) {
           $row.data("has-down-btn", true);
-          var dLink = $nameCol.find('a[class="Link--primary"]').attr("href");
+          const dLink = $nameCol.find('a[class="Link--primary"]').attr("href");
+
           if (dLink) {
             const downloadUrl =
               (config?.projectFileDownloadUrl || MirrorUrl[0].url) +
               "/https://github.com" +
               dLink;
-            $svg.after(
-              `<a href="${downloadUrl}" target="_blank" class="fileDownLink" title="下载文件"><svg viewBox="0 0 1024 1024" width="16" height="16"><path d="M508.746667 299.2L485.333333 452.373333a5.333333 5.333333 0 0 0 4 5.973334l217.386667 53.333333a5.333333 5.333333 0 0 1 2.72 8.693333l-184.906667 208.8a5.333333 5.333333 0 0 1-9.28-4.32l23.413334-153.226666a5.333333 5.333333 0 0 0-4-5.973334L317.173333 512a5.333333 5.333333 0 0 1-2.506666-8.48l184.8-208.693333a5.333333 5.333333 0 0 1 9.28 4.373333z m-329.493334 256l271.253334 66.666667a5.333333 5.333333 0 0 1 4 5.973333l-51.04 335.68a5.333333 5.333333 0 0 0 9.226666 4.32l434.773334-490.346667a5.333333 5.333333 0 0 0-2.72-8.693333l-271.253334-66.666667a5.333333 5.333333 0 0 1-4-5.973333l51.04-335.626667a5.333333 5.333333 0 0 0-9.226666-4.373333L176.533333 546.506667a5.333333 5.333333 0 0 0 2.72 8.693333z" fill="#57606a"></path></svg></a>`,
-            );
+            const $wrapper = $(`
+            <div class="fileDownWrapper">
+              <a href="${downloadUrl}" target="_blank" class="fileDownLink" title="Fast Download">
+                <svg viewBox="0 0 1024 1024" width="16" height="16">
+                  <path d="M508.746667 299.2L485.333333 452.373333a5.333333 5.333333 0 0 0 4 5.973334l217.386667 53.333333a5.333333 5.333333 0 0 1 2.72 8.693333l-184.906667 208.8a5.333333 5.333333 0 0 1-9.28-4.32l23.413334-153.226666a5.333333 5.333333 0 0 0-4-5.973334L317.173333 512a5.333333 5.333333 0 0 1-2.506666-8.48l184.8-208.693333a5.333333 5.333333 0 0 1 9.28 4.373333z m-329.493334 256l271.253334 66.666667a5.333333 5.333333 0 0 1 4 5.973333l-51.04 335.68a5.333333 5.333333 0 0 0 9.226666 4.32l434.773334-490.346667a5.333333 5.333333 0 0 0-2.72-8.693333l-271.253334-66.666667a5.333333 5.333333 0 0 1-4-5.973333l51.04-335.626667a5.333333 5.333333 0 0 0-9.226666-4.373333L176.533333 546.506667a5.333333 5.333333 0 0 0 2.72 8.693333z" fill="#57606a"></path>
+                </svg>
+              </a>
+            </div>
+          `);
+            $svg.before($wrapper);
           }
         }
       }
