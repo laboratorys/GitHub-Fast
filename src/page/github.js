@@ -166,12 +166,7 @@ export function run(elmGetter) {
         return;
       const $anchor = $li.find("a").first();
       const releasePath = $anchor.attr("href");
-      if (
-        !releasePath ||
-        releasePath.includes("#") ||
-        releasePath.includes("archive")
-      )
-        return;
+      if (!releasePath || releasePath.includes("#")) return;
       $li.data("has-fast-release", true);
       const urls = MirrorUrl.map(
         (u) => u.url + "/https://github.com" + releasePath,
