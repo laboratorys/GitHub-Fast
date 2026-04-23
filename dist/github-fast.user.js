@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub加速下载
 // @namespace    https://github.com/laboratorys/github-fast
-// @version      1.0.8
+// @version      1.0.9
 // @author       Libs
 // @description  可自定义配置的GitHub加速下载脚本
 // @license      MIT License
@@ -754,7 +754,10 @@
     __name: "App",
     setup(__props) {
       return (_ctx, _cache) => {
-        return vue.openBlock(), vue.createBlock(vue.unref(naiveUi.NConfigProvider), { theme: vue.unref(currentTheme) }, {
+        return vue.openBlock(), vue.createBlock(vue.unref(naiveUi.NConfigProvider), {
+          theme: vue.unref(currentTheme),
+          "preflight-style-disabled": ""
+        }, {
           default: vue.withCtx(() => [
             vue.createVNode(_sfc_main$1)
           ]),
@@ -900,8 +903,7 @@
           return;
         const $anchor = $li.find("a").first();
         const releasePath = $anchor.attr("href");
-        if (!releasePath || releasePath.includes("#") || releasePath.includes("archive"))
-          return;
+        if (!releasePath || releasePath.includes("#")) return;
         $li.data("has-fast-release", true);
         const urls = MirrorUrl.map(
           (u) => u.url + "/https://github.com" + releasePath
