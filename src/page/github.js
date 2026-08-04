@@ -5,9 +5,56 @@ export function run(elmGetter) {
   const config = GM_getValue("githubFastConfig");
   const store = useStore();
 
+  const LINK_COLOR_SCHEMES = {
+    green: {
+      light: "#18a058",
+      dark: "#98fb98",
+    },
+    blue: {
+      light: "#2080f0",
+      dark: "#82b1ff",
+    },
+    yellow: {
+      light: "#f0a020",
+      dark: "#f6d365",
+    },
+    red: {
+      light: "#d03050",
+      dark: "#f08aa0",
+    },
+  };
+  const getGitHubColorMode = () => {
+    const colorMode =
+      document.documentElement.getAttribute("data-color-mode") || "auto";
+
+    if (colorMode === "dark") return "dark";
+    if (colorMode === "light") return "light";
+
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  };
+  const getCurrentLinkColor = () => {
+    const scheme = config?.linkColorScheme || "green";
+    const themeMode = getGitHubColorMode();
+    return (
+      LINK_COLOR_SCHEMES[scheme]?.[themeMode] || LINK_COLOR_SCHEMES.green.light
+    );
+  };
+  const getCurrentSuccessColor = () => {
+    const scheme = "green";
+    const themeMode = getGitHubColorMode();
+    return (
+      LINK_COLOR_SCHEMES[scheme]?.[themeMode] || LINK_COLOR_SCHEMES.green.light
+    );
+  };
   const injectCSS = () => {
     const style = document.createElement("style");
     style.innerHTML = `
+      :root {
+        --github-fast-link-color: ${getCurrentLinkColor()};
+        --github-fast-success-color: ${getCurrentSuccessColor()};
+      }
       .react-directory-filename-column { 
         position: relative !important; 
       }
@@ -32,6 +79,10 @@ export function run(elmGetter) {
         align-items: center;
         justify-content: center;
         background: transparent !important;
+        color: var(--github-fast-link-color);
+      }
+      .fileDownWrapper .fileDownLink svg path {
+        fill: var(--github-fast-link-color) !important;
       }
       .fileDownWrapper:hover + svg.octicon-file { 
         opacity: 0 !important; 
@@ -40,7 +91,7 @@ export function run(elmGetter) {
         display: inline-flex !important; 
       }
       .fast-clone-wrapper { margin-top: 12px; width: 100%; border: none !important; }
-      .palegreen { color: palegreen; font-weight: 600; font-size: 12px; margin-bottom: 6px; display: block; }
+      .palegreen { color: var(--github-fast-link-color); font-weight: 600; font-size: 12px; margin-bottom: 6px; display: block; }
       .fast-clone-row { display: flex !important; align-items: center !important; gap: 8px; margin-top: 8px; }
       .fast-clone-row input { flex-grow: 1; width: 0; }
       .fast-copy-btn {
@@ -66,9 +117,52 @@ export function run(elmGetter) {
         color: var(--fgColor-success, var(--color-success-fg)) !important;
         border-color: var(--color-success-fg) !important;
       }
-      .fast-release { display: inline-flex !important; margin-left: 12px; align-items: center; vertical-align: middle; }
+      .fast-release {
+        display: inline-flex !important;
+        margin-left: 12px;
+        align-items: center;
+        vertical-align: middle;
+        color: var(--github-fast-link-color);
+      }
+      .fast-release svg {
+        color: var(--github-fast-link-color);
+      }
+      .fast-link-name {
+        color: var(--github-fast-link-color) !important;
+      }
+      .fast-zip-link {
+        color: var(--github-fast-link-color) !important;
+      }
     `;
     document.head.appendChild(style);
+    const syncThemeColor = () => {
+      document.documentElement.style.setProperty(
+        "--github-fast-link-color",
+        getCurrentLinkColor(),
+      );
+    };
+    syncThemeColor();
+
+    const systemThemeMedia = window.matchMedia("(prefers-color-scheme: dark)");
+    const colorModeObserver = new MutationObserver((mutationsList) => {
+      for (const mutation of mutationsList) {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "data-color-mode"
+        ) {
+          syncThemeColor();
+        }
+      }
+    });
+    colorModeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-color-mode"],
+    });
+    if (typeof systemThemeMedia.addEventListener === "function") {
+      systemThemeMedia.addEventListener("change", syncThemeColor);
+    } else if (typeof systemThemeMedia.addListener === "function") {
+      systemThemeMedia.addListener(syncThemeColor);
+    }
   };
   injectCSS();
 
@@ -79,7 +173,6 @@ export function run(elmGetter) {
   GM.registerMenuCommand("加速配置", () => {
     store.showConfig = true;
   });
-
   var MirrorUrl = pollingUrl();
   if (MirrorUrl.length == 0) return;
 
@@ -174,7 +267,7 @@ export function run(elmGetter) {
       const aHtml = urls
         .map(
           (u, i) =>
-            `<a href="${u}" rel="nofollow" class="Truncate ml-1"><span class="Truncate-text text-bold" style="color:palegreen">${MirrorUrl[i].name}</span></a>`,
+            `<a href="${u}" rel="nofollow" class="Truncate ml-1"><span class="Truncate-text text-bold fast-link-name">${MirrorUrl[i].name}</span></a>`,
         )
         .join("");
       $li.append(
@@ -264,7 +357,7 @@ export function run(elmGetter) {
         .find("span")
         .last()
         .text(`Fast ZIP [${u.name}]`)
-        .css("color", "palegreen");
+        .addClass("fast-zip-link");
       $ul.append($li);
     });
   }

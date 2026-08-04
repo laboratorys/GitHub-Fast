@@ -11,6 +11,52 @@
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     xmlns:xlink="http://www.w3.org/1999/xlink"
+                    viewBox="0 0 24 24">
+                    <g fill="none">
+                      <path
+                        d="M3.839 5.858c2.94-3.916 9.03-5.055 13.364-2.36c4.28 2.66 5.854 7.777 4.1 12.577c-1.655 4.533-6.016 6.328-9.159 4.048c-1.177-.854-1.634-1.925-1.854-3.664l-.106-.987l-.045-.398c-.123-.934-.311-1.352-.705-1.572c-.535-.298-.892-.305-1.595-.033l-.351.146l-.179.078c-1.014.44-1.688.595-2.541.416l-.2-.047l-.164-.047c-2.789-.864-3.202-4.647-.565-8.157zm.984 6.716l.123.037l.134.03c.439.087.814.015 1.437-.242l.602-.257c1.202-.493 1.985-.54 3.046.05c.917.512 1.275 1.298 1.457 2.66l.053.459l.055.532l.047.422c.172 1.361.485 2.09 1.248 2.644c2.275 1.65 5.534.309 6.87-3.349c1.516-4.152.174-8.514-3.484-10.789c-3.675-2.284-8.899-1.306-11.373 1.987c-2.075 2.763-1.82 5.28-.215 5.816zm11.225-1.994a1.25 1.25 0 1 1 2.414-.647a1.25 1.25 0 0 1-2.414.647zm.494 3.488a1.25 1.25 0 1 1 2.415-.647a1.25 1.25 0 0 1-2.415.647zM14.07 7.577a1.25 1.25 0 1 1 2.415-.647a1.25 1.25 0 0 1-2.415.647zm-.028 8.998a1.25 1.25 0 1 1 2.414-.647a1.25 1.25 0 0 1-2.414.647zm-3.497-9.97a1.25 1.25 0 1 1 2.415-.646a1.25 1.25 0 0 1-2.415.646z"
+                        fill="currentColor"></path>
+                    </g>
+                  </svg>
+                </n-icon>
+              </n-button>
+              <n-text type="primary"> 链接颜色 </n-text>
+              <n-tooltip trigger="hover" placement="right">
+                <template #trigger>
+                  <n-button text style="font-size: 20px">
+                    <n-icon>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns:xlink="http://www.w3.org/1999/xlink"
+                        viewBox="0 0 16 16">
+                        <g fill="none">
+                          <path
+                            d="M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 8.5A.75.75 0 1 0 8 12a.75.75 0 0 0 0-1.5zm0-6a2 2 0 0 0-2 2a.5.5 0 0 0 1 0a1 1 0 0 1 2 0c0 .37-.083.58-.366.898l-.116.125l-.264.27C7.712 8.36 7.5 8.768 7.5 9.5a.5.5 0 0 0 1 0c0-.37.083-.58.366-.898l.116-.125l.264-.27C9.788 7.64 10 7.232 10 6.5a2 2 0 0 0-2-2z"
+                            fill="currentColor"></path>
+                        </g>
+                      </svg>
+                    </n-icon>
+                  </n-button>
+                </template>
+                自定义加速链接颜色
+              </n-tooltip>
+            </n-flex>
+          </n-h3>
+          <n-form-item label="加速链接颜色">
+            <n-select
+              size="small"
+              v-model:value="linkColorScheme"
+              :options="linkColorOptions"
+              :render-label="renderLabel"
+              placeholder="选择加速链接颜色" />
+          </n-form-item>
+          <n-h3>
+            <n-flex style="gap: 3px">
+              <n-button text style="font-size: 20px" type="primary">
+                <n-icon>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
                     viewBox="0 0 32 32">
                     <path d="M15 8h2v2h-2z" fill="currentColor"></path>
                     <path d="M19 8h2v2h-2z" fill="currentColor"></path>
@@ -282,27 +328,28 @@
   </n-drawer>
 </template>
 <script setup>
-import { ref, computed, watch } from "vue";
-import { useStore } from "../utils/store.js";
 import {
-  NFlex,
-  NIcon,
-  NTooltip,
+  NAlert,
+  NBadge,
   NButton,
+  NCheckbox,
   NDrawer,
   NDrawerContent,
+  NDynamicInput,
+  NFlex,
   NForm,
   NFormItem,
-  NDynamicInput,
-  NSpace,
-  NInput,
-  NCheckbox,
   NH3,
-  NText,
+  NIcon,
+  NInput,
   NSelect,
+  NSpace,
   NSwitch,
-  NAlert,
+  NText,
+  NTooltip,
 } from "naive-ui";
+import { computed, h, ref } from "vue";
+import { useStore } from "../utils/store.js";
 const store = useStore();
 const proxyUrlList = ref([]);
 const isAutoTest = ref(false);
@@ -311,6 +358,96 @@ const bypassDownload = ref(false);
 const clone = ref(true);
 const depth = ref(false);
 const isTesting = ref(false);
+const currentColorMode = ref(
+  document.documentElement.getAttribute("data-color-mode") === "dark"
+    ? "dark"
+    : document.documentElement.getAttribute("data-color-mode") === "light"
+      ? "light"
+      : window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light",
+);
+const linkColorScheme = ref("green");
+const linkColorOptions = [
+  {
+    label: "绿色",
+    value: "green",
+    lightColor: "#18a058",
+    darkColor: "#98fb98",
+  },
+  {
+    label: "蓝色",
+    value: "blue",
+    lightColor: "#2080f0",
+    darkColor: "#82b1ff",
+  },
+  {
+    label: "黄色",
+    value: "yellow",
+    lightColor: "#f0a020",
+    darkColor: "#f6d365",
+  },
+  {
+    label: "红色",
+    value: "red",
+    lightColor: "#d03050",
+    darkColor: "#f08aa0",
+  },
+];
+const getBadgeColor = (option) => {
+  return currentColorMode.value === "dark"
+    ? option.darkColor
+    : option.lightColor;
+};
+const renderLabel = (option) => {
+  return h(
+    "div",
+    {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+      },
+    },
+    [
+      h(NBadge, { color: getBadgeColor(option), dot: true }),
+      h("span", option.label),
+    ],
+  );
+};
+const syncCurrentColorMode = () => {
+  const colorMode =
+    document.documentElement.getAttribute("data-color-mode") || "auto";
+  currentColorMode.value =
+    colorMode === "dark"
+      ? "dark"
+      : colorMode === "light"
+        ? "light"
+        : window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+};
+const colorModeObserver = new MutationObserver((mutationsList) => {
+  for (const mutation of mutationsList) {
+    if (
+      mutation.type === "attributes" &&
+      mutation.attributeName === "data-color-mode"
+    ) {
+      syncCurrentColorMode();
+    }
+  }
+});
+colorModeObserver.observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: ["data-color-mode"],
+});
+const systemThemeMedia = window.matchMedia("(prefers-color-scheme: dark)");
+if (typeof systemThemeMedia.addEventListener === "function") {
+  systemThemeMedia.addEventListener("change", syncCurrentColorMode);
+} else if (typeof systemThemeMedia.addListener === "function") {
+  systemThemeMedia.addListener(syncCurrentColorMode);
+}
+
 const projectFileUrlList = computed(() => {
   var hasVal = false;
   proxyUrlList.value.find(function (value) {
@@ -362,6 +499,7 @@ const saveConfig = async () => {
     bypassDownload: bypassDownload.value,
     clone: clone.value,
     depth: depth.value,
+    linkColorScheme: linkColorScheme.value,
   });
   GM.notification("配置更新成功，请刷新页面！");
 };
@@ -371,7 +509,7 @@ const measureUrlSpeed = async (url) => {
     const cleanedUrl = url.replace(/\/+$/, "");
     const response = await fetch(
       `${cleanedUrl}/https://raw.githubusercontent.com/XTLS/Xray-core/main/LICENSE`,
-      { method: "HEAD", mode: "no-cors" } // 避免跨域问题
+      { method: "HEAD", mode: "no-cors" }, // 避免跨域问题
     );
     const endTime = performance.now();
     const speed = endTime - startTime;
@@ -386,7 +524,7 @@ async function measureAllUrlsParallel(items) {
     items.map(async (item) => {
       const speed = await measureUrlSpeed(item.url);
       return { url: item.url, speed };
-    })
+    }),
   );
   return results;
 }
@@ -449,6 +587,7 @@ const initData = () => {
     bypassDownload.value = config.bypassDownload;
     clone.value = config.clone;
     depth.value = config.depth;
+    linkColorScheme.value = config.linkColorScheme || "green";
     if (config.isAutoTest) {
       testAllEnabledUrls(false).then(() => {
         config.proxyUrlList = proxyUrlList.value;
