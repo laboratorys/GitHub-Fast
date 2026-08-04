@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub加速下载
 // @namespace    https://github.com/laboratorys/github-fast
-// @version      1.0.9
+// @version      1.1.0
 // @author       Libs
 // @description  可自定义配置的GitHub加速下载脚本
 // @license      MIT License
@@ -43,6 +43,76 @@
       const clone = vue.ref(true);
       const depth = vue.ref(false);
       const isTesting = vue.ref(false);
+      const currentColorMode = vue.ref(
+        document.documentElement.getAttribute("data-color-mode") === "dark" ? "dark" : document.documentElement.getAttribute("data-color-mode") === "light" ? "light" : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+      );
+      const linkColorScheme = vue.ref("green");
+      const linkColorOptions = [
+        {
+          label: "绿色",
+          value: "green",
+          lightColor: "#18a058",
+          darkColor: "#98fb98"
+        },
+        {
+          label: "蓝色",
+          value: "blue",
+          lightColor: "#2080f0",
+          darkColor: "#82b1ff"
+        },
+        {
+          label: "黄色",
+          value: "yellow",
+          lightColor: "#f0a020",
+          darkColor: "#f6d365"
+        },
+        {
+          label: "红色",
+          value: "red",
+          lightColor: "#d03050",
+          darkColor: "#f08aa0"
+        }
+      ];
+      const getBadgeColor = (option) => {
+        return currentColorMode.value === "dark" ? option.darkColor : option.lightColor;
+      };
+      const renderLabel = (option) => {
+        return vue.h(
+          "div",
+          {
+            style: {
+              display: "flex",
+              alignItems: "center",
+              gap: "8px"
+            }
+          },
+          [
+            vue.h(naiveUi.NBadge, { color: getBadgeColor(option), dot: true }),
+            vue.h("span", option.label)
+          ]
+        );
+      };
+      const syncCurrentColorMode = () => {
+        const colorMode2 = document.documentElement.getAttribute("data-color-mode") || "auto";
+        currentColorMode.value = colorMode2 === "dark" ? "dark" : colorMode2 === "light" ? "light" : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      };
+      const colorModeObserver = new MutationObserver((mutationsList) => {
+        for (const mutation of mutationsList) {
+          if (mutation.type === "attributes" && mutation.attributeName === "data-color-mode") {
+            syncCurrentColorMode();
+          }
+        }
+      });
+      colorModeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-color-mode"]
+      });
+      const systemThemeMedia = window.matchMedia("(prefers-color-scheme: dark)");
+      if (typeof systemThemeMedia.addEventListener === "function") {
+        systemThemeMedia.addEventListener("change", syncCurrentColorMode);
+      } else if (typeof systemThemeMedia.addListener === "function") {
+        systemThemeMedia.addListener(syncCurrentColorMode);
+      }
       const projectFileUrlList = vue.computed(() => {
         var hasVal = false;
         proxyUrlList.value.find(function(value) {
@@ -93,7 +163,8 @@
           isAutoTest: isAutoTest.value,
           bypassDownload: bypassDownload.value,
           clone: clone.value,
-          depth: depth.value
+          depth: depth.value,
+          linkColorScheme: linkColorScheme.value
         });
         GM.notification("配置更新成功，请刷新页面！");
       };
@@ -165,6 +236,7 @@
           bypassDownload.value = config.bypassDownload;
           clone.value = config.clone;
           depth.value = config.depth;
+          linkColorScheme.value = config.linkColorScheme || "green";
           if (config.isAutoTest) {
             testAllEnabledUrls(false).then(() => {
               config.proxyUrlList = proxyUrlList.value;
@@ -180,12 +252,12 @@
       return (_ctx, _cache) => {
         return vue.openBlock(), vue.createBlock(vue.unref(naiveUi.NDrawer), {
           show: vue.unref(store).showConfig,
-          "onUpdate:show": _cache[7] || (_cache[7] = ($event) => vue.unref(store).showConfig = $event),
+          "onUpdate:show": _cache[8] || (_cache[8] = ($event) => vue.unref(store).showConfig = $event),
           width: 630
         }, {
           default: vue.withCtx(() => [
             vue.createVNode(vue.unref(naiveUi.NDrawerContent), { closable: "" }, {
-              header: vue.withCtx(() => [..._cache[8] || (_cache[8] = [
+              header: vue.withCtx(() => [..._cache[9] || (_cache[9] = [
                 vue.createTextVNode(" GitHub加速配置 ", -1)
               ])]),
               default: vue.withCtx(() => [
@@ -207,7 +279,98 @@
                               }, {
                                 default: vue.withCtx(() => [
                                   vue.createVNode(vue.unref(naiveUi.NIcon), null, {
-                                    default: vue.withCtx(() => [..._cache[9] || (_cache[9] = [
+                                    default: vue.withCtx(() => [..._cache[10] || (_cache[10] = [
+                                      vue.createElementVNode("svg", {
+                                        xmlns: "http://www.w3.org/2000/svg",
+                                        "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                                        viewBox: "0 0 24 24"
+                                      }, [
+                                        vue.createElementVNode("g", { fill: "none" }, [
+                                          vue.createElementVNode("path", {
+                                            d: "M3.839 5.858c2.94-3.916 9.03-5.055 13.364-2.36c4.28 2.66 5.854 7.777 4.1 12.577c-1.655 4.533-6.016 6.328-9.159 4.048c-1.177-.854-1.634-1.925-1.854-3.664l-.106-.987l-.045-.398c-.123-.934-.311-1.352-.705-1.572c-.535-.298-.892-.305-1.595-.033l-.351.146l-.179.078c-1.014.44-1.688.595-2.541.416l-.2-.047l-.164-.047c-2.789-.864-3.202-4.647-.565-8.157zm.984 6.716l.123.037l.134.03c.439.087.814.015 1.437-.242l.602-.257c1.202-.493 1.985-.54 3.046.05c.917.512 1.275 1.298 1.457 2.66l.053.459l.055.532l.047.422c.172 1.361.485 2.09 1.248 2.644c2.275 1.65 5.534.309 6.87-3.349c1.516-4.152.174-8.514-3.484-10.789c-3.675-2.284-8.899-1.306-11.373 1.987c-2.075 2.763-1.82 5.28-.215 5.816zm11.225-1.994a1.25 1.25 0 1 1 2.414-.647a1.25 1.25 0 0 1-2.414.647zm.494 3.488a1.25 1.25 0 1 1 2.415-.647a1.25 1.25 0 0 1-2.415.647zM14.07 7.577a1.25 1.25 0 1 1 2.415-.647a1.25 1.25 0 0 1-2.415.647zm-.028 8.998a1.25 1.25 0 1 1 2.414-.647a1.25 1.25 0 0 1-2.414.647zm-3.497-9.97a1.25 1.25 0 1 1 2.415-.646a1.25 1.25 0 0 1-2.415.646z",
+                                            fill: "currentColor"
+                                          })
+                                        ])
+                                      ], -1)
+                                    ])]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 1
+                              }),
+                              vue.createVNode(vue.unref(naiveUi.NText), { type: "primary" }, {
+                                default: vue.withCtx(() => [..._cache[11] || (_cache[11] = [
+                                  vue.createTextVNode(" 链接颜色 ", -1)
+                                ])]),
+                                _: 1
+                              }),
+                              vue.createVNode(vue.unref(naiveUi.NTooltip), {
+                                trigger: "hover",
+                                placement: "right"
+                              }, {
+                                trigger: vue.withCtx(() => [
+                                  vue.createVNode(vue.unref(naiveUi.NButton), {
+                                    text: "",
+                                    style: { "font-size": "20px" }
+                                  }, {
+                                    default: vue.withCtx(() => [
+                                      vue.createVNode(vue.unref(naiveUi.NIcon), null, {
+                                        default: vue.withCtx(() => [..._cache[12] || (_cache[12] = [
+                                          vue.createElementVNode("svg", {
+                                            xmlns: "http://www.w3.org/2000/svg",
+                                            "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                                            viewBox: "0 0 16 16"
+                                          }, [
+                                            vue.createElementVNode("g", { fill: "none" }, [
+                                              vue.createElementVNode("path", {
+                                                d: "M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 8.5A.75.75 0 1 0 8 12a.75.75 0 0 0 0-1.5zm0-6a2 2 0 0 0-2 2a.5.5 0 0 0 1 0a1 1 0 0 1 2 0c0 .37-.083.58-.366.898l-.116.125l-.264.27C7.712 8.36 7.5 8.768 7.5 9.5a.5.5 0 0 0 1 0c0-.37.083-.58.366-.898l.116-.125l.264-.27C9.788 7.64 10 7.232 10 6.5a2 2 0 0 0-2-2z",
+                                                fill: "currentColor"
+                                              })
+                                            ])
+                                          ], -1)
+                                        ])]),
+                                        _: 1
+                                      })
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                default: vue.withCtx(() => [
+                                  _cache[13] || (_cache[13] = vue.createTextVNode(" 自定义加速链接颜色 ", -1))
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          })
+                        ]),
+                        _: 1
+                      }),
+                      vue.createVNode(vue.unref(naiveUi.NFormItem), { label: "加速链接颜色" }, {
+                        default: vue.withCtx(() => [
+                          vue.createVNode(vue.unref(naiveUi.NSelect), {
+                            size: "small",
+                            value: linkColorScheme.value,
+                            "onUpdate:value": _cache[0] || (_cache[0] = ($event) => linkColorScheme.value = $event),
+                            options: linkColorOptions,
+                            "render-label": renderLabel,
+                            placeholder: "选择加速链接颜色"
+                          }, null, 8, ["value"])
+                        ]),
+                        _: 1
+                      }),
+                      vue.createVNode(vue.unref(naiveUi.NH3), null, {
+                        default: vue.withCtx(() => [
+                          vue.createVNode(vue.unref(naiveUi.NFlex), { style: { "gap": "3px" } }, {
+                            default: vue.withCtx(() => [
+                              vue.createVNode(vue.unref(naiveUi.NButton), {
+                                text: "",
+                                style: { "font-size": "20px" },
+                                type: "primary"
+                              }, {
+                                default: vue.withCtx(() => [
+                                  vue.createVNode(vue.unref(naiveUi.NIcon), null, {
+                                    default: vue.withCtx(() => [..._cache[14] || (_cache[14] = [
                                       vue.createElementVNode("svg", {
                                         xmlns: "http://www.w3.org/2000/svg",
                                         "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -253,7 +416,7 @@
                                 _: 1
                               }),
                               vue.createVNode(vue.unref(naiveUi.NText), { type: "primary" }, {
-                                default: vue.withCtx(() => [..._cache[10] || (_cache[10] = [
+                                default: vue.withCtx(() => [..._cache[15] || (_cache[15] = [
                                   vue.createTextVNode(" 分流下载 ", -1)
                                 ])]),
                                 _: 1
@@ -269,7 +432,7 @@
                                   }, {
                                     default: vue.withCtx(() => [
                                       vue.createVNode(vue.unref(naiveUi.NIcon), null, {
-                                        default: vue.withCtx(() => [..._cache[11] || (_cache[11] = [
+                                        default: vue.withCtx(() => [..._cache[16] || (_cache[16] = [
                                           vue.createElementVNode("svg", {
                                             xmlns: "http://www.w3.org/2000/svg",
                                             "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -290,7 +453,7 @@
                                   })
                                 ]),
                                 default: vue.withCtx(() => [
-                                  _cache[12] || (_cache[12] = vue.createTextVNode(" 加速按钮只会显示一个，下载时轮询加速 ", -1))
+                                  _cache[17] || (_cache[17] = vue.createTextVNode(" 加速按钮只会显示一个，下载时轮询加速 ", -1))
                                 ]),
                                 _: 1
                               })
@@ -304,14 +467,14 @@
                         default: vue.withCtx(() => [
                           vue.createVNode(vue.unref(naiveUi.NSwitch), {
                             value: bypassDownload.value,
-                            "onUpdate:value": _cache[0] || (_cache[0] = ($event) => bypassDownload.value = $event),
+                            "onUpdate:value": _cache[1] || (_cache[1] = ($event) => bypassDownload.value = $event),
                             size: "large",
                             round: false
                           }, {
-                            checked: vue.withCtx(() => [..._cache[13] || (_cache[13] = [
+                            checked: vue.withCtx(() => [..._cache[18] || (_cache[18] = [
                               vue.createTextVNode(" 开启 ", -1)
                             ])]),
-                            unchecked: vue.withCtx(() => [..._cache[14] || (_cache[14] = [
+                            unchecked: vue.withCtx(() => [..._cache[19] || (_cache[19] = [
                               vue.createTextVNode(" 关闭 ", -1)
                             ])]),
                             _: 1
@@ -330,7 +493,7 @@
                               }, {
                                 default: vue.withCtx(() => [
                                   vue.createVNode(vue.unref(naiveUi.NIcon), null, {
-                                    default: vue.withCtx(() => [..._cache[15] || (_cache[15] = [
+                                    default: vue.withCtx(() => [..._cache[20] || (_cache[20] = [
                                       vue.createElementVNode("svg", {
                                         xmlns: "http://www.w3.org/2000/svg",
                                         "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -348,7 +511,7 @@
                                 _: 1
                               }),
                               vue.createVNode(vue.unref(naiveUi.NText), { type: "primary" }, {
-                                default: vue.withCtx(() => [..._cache[16] || (_cache[16] = [
+                                default: vue.withCtx(() => [..._cache[21] || (_cache[21] = [
                                   vue.createTextVNode(" 克隆 ", -1)
                                 ])]),
                                 _: 1
@@ -367,7 +530,7 @@
                                 size: "large",
                                 checked: clone.value,
                                 "onUpdate:checked": [
-                                  _cache[1] || (_cache[1] = ($event) => clone.value = $event),
+                                  _cache[2] || (_cache[2] = ($event) => clone.value = $event),
                                   handleUpdateCloneValue
                                 ],
                                 label: "git clone"
@@ -376,7 +539,7 @@
                                 size: "large",
                                 checked: depth.value,
                                 "onUpdate:checked": [
-                                  _cache[2] || (_cache[2] = ($event) => depth.value = $event),
+                                  _cache[3] || (_cache[3] = ($event) => depth.value = $event),
                                   handleUpdateDepthValue
                                 ],
                                 label: "--depth=1"
@@ -398,7 +561,7 @@
                               }, {
                                 default: vue.withCtx(() => [
                                   vue.createVNode(vue.unref(naiveUi.NIcon), null, {
-                                    default: vue.withCtx(() => [..._cache[17] || (_cache[17] = [
+                                    default: vue.withCtx(() => [..._cache[22] || (_cache[22] = [
                                       vue.createElementVNode("svg", {
                                         xmlns: "http://www.w3.org/2000/svg",
                                         "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -418,7 +581,7 @@
                                 _: 1
                               }),
                               vue.createVNode(vue.unref(naiveUi.NText), { type: "primary" }, {
-                                default: vue.withCtx(() => [..._cache[18] || (_cache[18] = [
+                                default: vue.withCtx(() => [..._cache[23] || (_cache[23] = [
                                   vue.createTextVNode(" 仓库文件加速 ", -1)
                                 ])]),
                                 _: 1
@@ -433,14 +596,14 @@
                         default: vue.withCtx(() => [
                           vue.createVNode(vue.unref(naiveUi.NSelect), {
                             value: projectFileDownloadUrl.value,
-                            "onUpdate:value": _cache[3] || (_cache[3] = ($event) => projectFileDownloadUrl.value = $event),
+                            "onUpdate:value": _cache[4] || (_cache[4] = ($event) => projectFileDownloadUrl.value = $event),
                             options: projectFileUrlList.value,
                             filterable: "",
                             placeholder: "选择加速地址"
                           }, {
                             arrow: vue.withCtx(() => [
                               vue.createVNode(vue.Transition, { name: "slide-left" }, {
-                                default: vue.withCtx(() => [..._cache[19] || (_cache[19] = [
+                                default: vue.withCtx(() => [..._cache[24] || (_cache[24] = [
                                   vue.createElementVNode("svg", {
                                     xmlns: "http://www.w3.org/2000/svg",
                                     "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -482,7 +645,7 @@
                                   }, {
                                     default: vue.withCtx(() => [
                                       vue.createVNode(vue.unref(naiveUi.NIcon), null, {
-                                        default: vue.withCtx(() => [..._cache[20] || (_cache[20] = [
+                                        default: vue.withCtx(() => [..._cache[25] || (_cache[25] = [
                                           vue.createElementVNode("svg", {
                                             xmlns: "http://www.w3.org/2000/svg",
                                             "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -502,7 +665,7 @@
                                     _: 1
                                   }),
                                   vue.createVNode(vue.unref(naiveUi.NText), { type: "primary" }, {
-                                    default: vue.withCtx(() => [..._cache[21] || (_cache[21] = [
+                                    default: vue.withCtx(() => [..._cache[26] || (_cache[26] = [
                                       vue.createTextVNode(" 加速列表", -1)
                                     ])]),
                                     _: 1
@@ -517,7 +680,7 @@
                                 default: vue.withCtx(() => [
                                   vue.createVNode(vue.unref(naiveUi.NSwitch), {
                                     value: isAutoTest.value,
-                                    "onUpdate:value": _cache[4] || (_cache[4] = ($event) => isAutoTest.value = $event),
+                                    "onUpdate:value": _cache[5] || (_cache[5] = ($event) => isAutoTest.value = $event),
                                     size: "small",
                                     round: false
                                   }, null, 8, ["value"]),
@@ -529,7 +692,7 @@
                                     loading: isTesting.value,
                                     style: { "min-width": "80px" }
                                   }, {
-                                    icon: vue.withCtx(() => [..._cache[22] || (_cache[22] = [
+                                    icon: vue.withCtx(() => [..._cache[27] || (_cache[27] = [
                                       vue.createElementVNode("svg", {
                                         xmlns: "http://www.w3.org/2000/svg",
                                         viewBox: "0 0 24 24",
@@ -563,7 +726,7 @@
                                       }, {
                                         default: vue.withCtx(() => [
                                           vue.createVNode(vue.unref(naiveUi.NIcon), null, {
-                                            default: vue.withCtx(() => [..._cache[23] || (_cache[23] = [
+                                            default: vue.withCtx(() => [..._cache[28] || (_cache[28] = [
                                               vue.createElementVNode("svg", {
                                                 xmlns: "http://www.w3.org/2000/svg",
                                                 "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -584,7 +747,7 @@
                                       })
                                     ]),
                                     default: vue.withCtx(() => [
-                                      _cache[24] || (_cache[24] = vue.createTextVNode(" GitHub镜像站点，没有代理的话可以逛逛 ", -1))
+                                      _cache[29] || (_cache[29] = vue.createTextVNode(" GitHub镜像站点，没有代理的话可以逛逛 ", -1))
                                     ]),
                                     _: 1
                                   })
@@ -601,7 +764,7 @@
                         "show-icon": false,
                         bordered: false
                       }, {
-                        default: vue.withCtx(() => [..._cache[25] || (_cache[25] = [
+                        default: vue.withCtx(() => [..._cache[30] || (_cache[30] = [
                           vue.createTextVNode(" 开启自动检测后，每次打开GitHub会进行一次测速，测速后将按照速度进行排序。 ", -1)
                         ])]),
                         _: 1
@@ -610,11 +773,11 @@
                         default: vue.withCtx(() => [
                           vue.createVNode(vue.unref(naiveUi.NDynamicInput), {
                             value: proxyUrlList.value,
-                            "onUpdate:value": _cache[5] || (_cache[5] = ($event) => proxyUrlList.value = $event),
+                            "onUpdate:value": _cache[6] || (_cache[6] = ($event) => proxyUrlList.value = $event),
                             "show-sort-button": "",
                             "on-create": onCreate
                           }, {
-                            "create-button-default": vue.withCtx(() => [..._cache[26] || (_cache[26] = [
+                            "create-button-default": vue.withCtx(() => [..._cache[31] || (_cache[31] = [
                               vue.createTextVNode(" 添加 ", -1)
                             ])]),
                             default: vue.withCtx(({ value }) => [
@@ -664,7 +827,7 @@
                             strong: "",
                             onClick: saveConfig
                           }, {
-                            icon: vue.withCtx(() => [..._cache[27] || (_cache[27] = [
+                            icon: vue.withCtx(() => [..._cache[32] || (_cache[32] = [
                               vue.createElementVNode("svg", {
                                 xmlns: "http://www.w3.org/2000/svg",
                                 "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -679,7 +842,7 @@
                               ], -1)
                             ])]),
                             default: vue.withCtx(() => [
-                              _cache[28] || (_cache[28] = vue.createTextVNode(" 保存配置 ", -1))
+                              _cache[33] || (_cache[33] = vue.createTextVNode(" 保存配置 ", -1))
                             ]),
                             _: 1
                           }),
@@ -688,9 +851,9 @@
                             type: "default",
                             size: "medium",
                             strong: "",
-                            onClick: _cache[6] || (_cache[6] = ($event) => vue.unref(store).showConfig = false)
+                            onClick: _cache[7] || (_cache[7] = ($event) => vue.unref(store).showConfig = false)
                           }, {
-                            icon: vue.withCtx(() => [..._cache[29] || (_cache[29] = [
+                            icon: vue.withCtx(() => [..._cache[34] || (_cache[34] = [
                               vue.createElementVNode("svg", {
                                 xmlns: "http://www.w3.org/2000/svg",
                                 "xmlns:xlink": "http://www.w3.org/1999/xlink",
@@ -703,7 +866,7 @@
                               ], -1)
                             ])]),
                             default: vue.withCtx(() => [
-                              _cache[30] || (_cache[30] = vue.createTextVNode(" 关闭 ", -1))
+                              _cache[35] || (_cache[35] = vue.createTextVNode(" 关闭 ", -1))
                             ]),
                             _: 1
                           })
@@ -769,9 +932,47 @@
   function run(elmGetter) {
     const config = GM_getValue("githubFastConfig");
     const store = useStore();
+    const LINK_COLOR_SCHEMES = {
+      green: {
+        light: "#18a058",
+        dark: "#98fb98"
+      },
+      blue: {
+        light: "#2080f0",
+        dark: "#82b1ff"
+      },
+      yellow: {
+        light: "#f0a020",
+        dark: "#f6d365"
+      },
+      red: {
+        light: "#d03050",
+        dark: "#f08aa0"
+      }
+    };
+    const getGitHubColorMode = () => {
+      const colorMode2 = document.documentElement.getAttribute("data-color-mode") || "auto";
+      if (colorMode2 === "dark") return "dark";
+      if (colorMode2 === "light") return "light";
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    };
+    const getCurrentLinkColor = () => {
+      const scheme = config?.linkColorScheme || "green";
+      const themeMode = getGitHubColorMode();
+      return LINK_COLOR_SCHEMES[scheme]?.[themeMode] || LINK_COLOR_SCHEMES.green.light;
+    };
+    const getCurrentSuccessColor = () => {
+      const scheme = "green";
+      const themeMode = getGitHubColorMode();
+      return LINK_COLOR_SCHEMES[scheme]?.[themeMode] || LINK_COLOR_SCHEMES.green.light;
+    };
     const injectCSS = () => {
       const style = document.createElement("style");
       style.innerHTML = `
+      :root {
+        --github-fast-link-color: ${getCurrentLinkColor()};
+        --github-fast-success-color: ${getCurrentSuccessColor()};
+      }
       .react-directory-filename-column { 
         position: relative !important; 
       }
@@ -796,6 +997,10 @@
         align-items: center;
         justify-content: center;
         background: transparent !important;
+        color: var(--github-fast-link-color);
+      }
+      .fileDownWrapper .fileDownLink svg path {
+        fill: var(--github-fast-link-color) !important;
       }
       .fileDownWrapper:hover + svg.octicon-file { 
         opacity: 0 !important; 
@@ -804,7 +1009,7 @@
         display: inline-flex !important; 
       }
       .fast-clone-wrapper { margin-top: 12px; width: 100%; border: none !important; }
-      .palegreen { color: palegreen; font-weight: 600; font-size: 12px; margin-bottom: 6px; display: block; }
+      .palegreen { color: var(--github-fast-link-color); font-weight: 600; font-size: 12px; margin-bottom: 6px; display: block; }
       .fast-clone-row { display: flex !important; align-items: center !important; gap: 8px; margin-top: 8px; }
       .fast-clone-row input { flex-grow: 1; width: 0; }
       .fast-copy-btn {
@@ -830,9 +1035,48 @@
         color: var(--fgColor-success, var(--color-success-fg)) !important;
         border-color: var(--color-success-fg) !important;
       }
-      .fast-release { display: inline-flex !important; margin-left: 12px; align-items: center; vertical-align: middle; }
+      .fast-release {
+        display: inline-flex !important;
+        margin-left: 12px;
+        align-items: center;
+        vertical-align: middle;
+        color: var(--github-fast-link-color);
+      }
+      .fast-release svg {
+        color: var(--github-fast-link-color);
+      }
+      .fast-link-name {
+        color: var(--github-fast-link-color) !important;
+      }
+      .fast-zip-link {
+        color: var(--github-fast-link-color) !important;
+      }
     `;
       document.head.appendChild(style);
+      const syncThemeColor = () => {
+        document.documentElement.style.setProperty(
+          "--github-fast-link-color",
+          getCurrentLinkColor()
+        );
+      };
+      syncThemeColor();
+      const systemThemeMedia = window.matchMedia("(prefers-color-scheme: dark)");
+      const colorModeObserver = new MutationObserver((mutationsList) => {
+        for (const mutation of mutationsList) {
+          if (mutation.type === "attributes" && mutation.attributeName === "data-color-mode") {
+            syncThemeColor();
+          }
+        }
+      });
+      colorModeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-color-mode"]
+      });
+      if (typeof systemThemeMedia.addEventListener === "function") {
+        systemThemeMedia.addEventListener("change", syncThemeColor);
+      } else if (typeof systemThemeMedia.addListener === "function") {
+        systemThemeMedia.addListener(syncThemeColor);
+      }
     };
     injectCSS();
     const ICON_COPY = `<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>`;
@@ -909,7 +1153,7 @@
           (u) => u.url + "/https://github.com" + releasePath
         );
         const aHtml = urls.map(
-          (u, i) => `<a href="${u}" rel="nofollow" class="Truncate ml-1"><span class="Truncate-text text-bold" style="color:palegreen">${MirrorUrl[i].name}</span></a>`
+          (u, i) => `<a href="${u}" rel="nofollow" class="Truncate ml-1"><span class="Truncate-text text-bold fast-link-name">${MirrorUrl[i].name}</span></a>`
         ).join("");
         $li.append(
           `<div class="fast-release"><svg width="14" height="14" viewBox="0 0 1024 1024" style="vertical-align: middle; margin-right: 4px;"><path d="M508.746667 299.2L485.333333 452.373333a5.333333 5.333333 0 0 0 4 5.973334l217.386667 53.333333a5.333333 5.333333 0 0 1 2.72 8.693333l-184.906667 208.8a5.333333 5.333333 0 0 1-9.28-4.32l23.413334-153.226666a5.333333 5.333333 0 0 0-4-5.973334L317.173333 512a5.333333 5.333333 0 0 1-2.506666-8.48l184.8-208.693333a5.333333 5.333333 0 0 1 9.28 4.373333z m-329.493334 256l271.253334 66.666667a5.333333 5.333333 0 0 1 4 5.973333l-51.04 335.68a5.333333 5.333333 0 0 0 9.226666 4.32l434.773334-490.346667a5.333333 5.333333 0 0 0-2.72-8.693333l-271.253334-66.666667a5.333333 5.333333 0 0 1-4-5.973333l51.04-335.626667a5.333333 5.333333 0 0 0-9.226666-4.373333L176.533333 546.506667a5.333333 5.333333 0 0 0 2.72 8.693333z" fill="#57606a"></path></svg>${aHtml}</div>`
@@ -967,7 +1211,7 @@
         let $li = $zipLi.clone().addClass("fast-zip");
         var originalHref = $li.find("a").attr("href");
         var Url = u.url + "/https://github.com" + originalHref;
-        $li.find("a").attr("href", Url).find("span").last().text(`Fast ZIP [${u.name}]`).css("color", "palegreen");
+        $li.find("a").attr("href", Url).find("span").last().text(`Fast ZIP [${u.name}]`).addClass("fast-zip-link");
         $ul.append($li);
       });
     }
