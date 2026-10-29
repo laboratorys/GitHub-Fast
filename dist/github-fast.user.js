@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GitHub加速下载
 // @namespace    https://github.com/laboratorys/github-fast
-// @version      1.1.0
+// @version      1.1.1
 // @author       Libs
 // @description  可自定义配置的GitHub加速下载脚本
 // @license      MIT License
@@ -16,10 +16,12 @@
 // @require      https://registry.npmmirror.com/jquery/3.7.1/files
 // @require      https://unpkg.com/naive-ui@2.43.1/dist/index.prod.js
 // @require      https://registry.npmmirror.com/pinia/3.0.4/files/dist/pinia.iife.prod.js
+// @connect      *
 // @grant        GM.notification
 // @grant        GM.registerMenuCommand
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 (function (vue, pinia$1, naiveUi, $) {
@@ -168,21 +170,33 @@
         });
         GM.notification("配置更新成功，请刷新页面！");
       };
-      const measureUrlSpeed = async (url) => {
-        try {
+      const measureUrlSpeed = (url) => {
+        return new Promise((resolve) => {
           const startTime = performance.now();
           const cleanedUrl = url.replace(/\/+$/, "");
-          const response = await fetch(
-            `${cleanedUrl}/https://raw.githubusercontent.com/XTLS/Xray-core/main/LICENSE`,
-            { method: "HEAD", mode: "no-cors" }
-);
-          const endTime = performance.now();
-          const speed = endTime - startTime;
-          return speed >= 0 ? `${speed.toFixed(0)}ms` : "-1";
-        } catch (error) {
-          console.error(`测速失败 [${url}]:`, error.message);
-          return "超时";
-        }
+          const testTarget = `${cleanedUrl}/https://raw.githubusercontent.com/XTLS/Xray-core/main/LICENSE`;
+          GM_xmlhttpRequest({
+            method: "GET",
+            url: testTarget,
+            timeout: 5e3,
+            onload: (res) => {
+              if (res.status >= 200 && res.status < 400) {
+                const endTime = performance.now();
+                resolve(`${(endTime - startTime).toFixed(0)}ms`);
+              } else {
+                console.error(`测速状态异常 [${res.status}]:`, testTarget);
+                resolve("超时");
+              }
+            },
+            onerror: (err) => {
+              console.error(`测速网络错误:`, err, testTarget);
+              resolve("超时");
+            },
+            ontimeout: () => {
+              resolve("超时");
+            }
+          });
+        });
       };
       async function measureAllUrlsParallel(items) {
         const results = await Promise.all(
